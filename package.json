@@ -1,0 +1,20 @@
+{
+  "name": "@lcui/cli",
+  "version": "0.1.0",
+  "description": "Command line interface for rapid LCUI development",
+  "main": "index.js",
+  "bin": {
+    "lcui": "bin/lcui.js"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Liu <lc-soft@live.cn<",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^3.0.2",
+    "camelcase": "^5.3.1",
+    "chalk": "^2.4.2",
+    "decamelize": "^3.2.0"
+  }
+}
