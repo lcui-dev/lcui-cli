@@ -6,19 +6,7 @@ const { flatObjectProperties } = require('../../lib/utils')
 const TEMPLATE_DIR = path.resolve(__dirname, 'templates')
 const TEMPLATE_FILE_C = path.join(TEMPLATE_DIR, 'i18n.c')
 const TEMPLATE_FILE_H = path.join(TEMPLATE_DIR, 'i18n.h')
-
-const defaultLocales = {
-  en: {
-    message: {
-      hello: 'hello world'
-    }
-  },
-  cn: {
-    message: {
-      hello: '你好，世界'
-    }
-  }
-}
+const TEMPLATE_FILE_JS = path.join(TEMPLATE_DIR, 'i18n.js')
 
 function convertToC(arr, indent = 0) {
   const body = []
@@ -56,7 +44,18 @@ class Generator {
   }
 
   generate() {
-    const locales = this.input ? require(this.input) : defaultLocales
+    if (!this.input) {
+      const configDir = path.join(this.cwd, 'config')
+
+      if (!fs.existsSync(configDir)) {
+        fs.mkdirSync(configDir)
+      }
+      this.input = `${path.join(configDir, this.name)}.js`
+      console.log(chalk.green('create'), path.relative(this.cwd, this.input))
+      fs.copyFileSync(TEMPLATE_FILE_JS, this.input)
+    }
+
+    const locales = require(this.input)
     const localeKeys = Object.keys(locales)
 
     let maxItems = 1

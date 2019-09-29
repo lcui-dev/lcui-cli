@@ -17,8 +17,16 @@ program
   .action(generate)
 
   program
-  .command('ci18n <input> [output]')
+  .command('ci18n [input] [output]')
   .description('compile i18n locale file to C source file')
-  .action(compile)
+  .action((input, output) => {
+    if (!input) {
+      input = 'config/i18n.js'
+    }
+    if (!output) {
+      output = 'src/lib/i18n'
+    }
+    compile(input, output)
+  })
 
 program.version(version).parse(process.argv)
