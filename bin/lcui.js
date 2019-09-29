@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 const program = require('commander')
-const { create } = require('../lib/init')
 const { compile } = require('../lib/i18n')
+const { create } = require('../lib/create')
 const { generate } = require('../lib/generator')
 const { version } = require('../package.json')
 
 program
-  .command('create <project>')
+  .command('create <project-name>')
   .description('create a new LCUI project')
   .action(create)
 
