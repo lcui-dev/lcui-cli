@@ -2,6 +2,8 @@
 
 ## 简介
 
+([English](README.md)/**中文**)
+
 LCUI CLI 是一个能让你基于 LCUI 进行快速开发的命令行工具，提供：
 
 - 最小 LCUI 应用模板

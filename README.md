@@ -2,6 +2,8 @@
 
 ## Introduction
 
+(**English**/[中文](README.zh-cn.md))
+
 LCUI CLI is command line interface for rapid LCUI development. providing:
 
 - Mininal LCUI project template
