@@ -32,8 +32,8 @@ class Generator {
     const file = path.join(this.sourceDir, 'components.c')
     const lines = fs.readFileSync(file, { encoding: 'utf-8' }).split('\n')
     const includeCode = `#include "components/${this.data.fileName}.h"`
-    const initFunciontCode = `\tUI_Init${this.data.className}Component()`
-    
+    const initFunciontCode = `\tUI_Init${this.data.className}Component();`
+
     lines.forEach((line, index) => {
       if (line.includes('#include')) {
         lastIndexOfInclude = index
@@ -53,10 +53,10 @@ class Generator {
   }
 
   updateComponentStyleFile() {
-    const line = `@import "components/${this.data.cssName}"`
+    const line = `@import "components/${this.data.cssName}";`
     const file = path.join(this.styleDir, '_components.scss')
     const lines = fs.readFileSync(file, { encoding: 'utf-8' }).split('\n')
-  
+
     if (lines.length > 0 && !lines[lines.length - 1].trim()) {
       lines.splice(lines.length - 1, 0, line)
     } else {
@@ -73,17 +73,17 @@ class Generator {
     console.log(chalk.green('create'), path.relative(this.cwd, output))
     return fs.writeFileSync(output, format(content, this.data))
   }
-  
+
   generate() {
     const name = this.data.fileName
     const sourceFile = path.join(this.componetsDir, `${name}.c`)
     const headerFile = path.join(this.componetsDir, `${name}.h`)
     const styleFile = path.join(this.componetsStyleDir, `_${name}.scss`)
-  
+
     this.generateFile('widget.c', sourceFile)
     this.generateFile('widget.h', headerFile)
     this.generateFile('widget.scss', styleFile)
-  
+
     this.updateComponentsSourceFile()
     this.updateComponentStyleFile()
   }

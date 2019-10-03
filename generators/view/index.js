@@ -39,8 +39,8 @@ class Generator {
     const file = path.join(this.sourceDir, 'views.c')
     const lines = fs.readFileSync(file, { encoding: 'utf-8' }).split('\n')
     const includeCode = `#include "views/${this.data.fileName}.h"`
-    const initFunciontCode = `\tUI_Init${this.data.className}View()`
-    
+    const initFunciontCode = `\tUI_Init${this.data.className}View();`
+
     lines.forEach((line, index) => {
       if (line.includes('#include')) {
         lastIndexOfInclude = index
@@ -61,10 +61,10 @@ class Generator {
 
   updateViewsStyleFile() {
     let lastIndexOfImport = -1
-    const importCode = `@import "views/${this.data.cssName}"`
+    const importCode = `@import "views/${this.data.cssName}";`
     const file = path.join(this.styleDir, '_views.scss')
     const lines = fs.readFileSync(file, { encoding: 'utf-8' }).split('\n')
-  
+
     lines.forEach((line, index) => {
       if (line.includes('@import')) {
         lastIndexOfImport = index
