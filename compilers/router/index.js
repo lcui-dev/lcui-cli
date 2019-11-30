@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const chalk = require('chalk')
+const { FileOperateLogger } = require('../../lib/utils')
 
 const OUTPUT_DIR = 'src/lib'
 const TEMPLATE_DIR = path.resolve(__dirname, 'templates')
@@ -135,6 +135,7 @@ class Compiler {
   constructor({ cwd } = {}) {
     this.name = 'router'
     this.cwd = cwd
+    this.logger = new FileOperateLogger(cwd)
   }
 
   updateComponentsSourceFile() {
@@ -154,10 +155,9 @@ class Compiler {
   compile(input) {
     const mainCode = []
     const configCode = []
-    const config = require(input)
+    let config = require(input)
     const output = path.join(this.cwd, OUTPUT_DIR, this.name)
 
-    console.log(chalk.green('output'), path.relative(this.cwd, `${output}.c`))
     if (config instanceof Array) {
       config = { default: config }
     }
@@ -187,7 +187,7 @@ class Compiler {
         .replace('{{config}}', configCode.join('\n'))
         .replace('{{code}}', mainCode.join('\n'))
     )
-    console.log(chalk.green('output'), path.relative(this.cwd, `${output}.h`))
+    this.logger.log('output', `${output}.h`)
     fs.copyFileSync(TEMPLATE_FILE_H, `${output}.h`)
     this.updateComponentsSourceFile()
   }

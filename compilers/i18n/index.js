@@ -1,7 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const chalk = require('chalk')
-const { flat } = require('../../lib/utils')
+const { flat, generateFile, FileOperateLogger } = require('../../lib/utils')
 
 const TEMPLATE_DIR = path.resolve(__dirname, 'templates')
 const TEMPLATE_FILE_C = path.join(TEMPLATE_DIR, 'i18n.c')
@@ -30,6 +29,7 @@ class Compiler {
   constructor({ cwd } = {}) {
     this.cwd = cwd
     this.name = 'i18n'
+    this.logger = new FileOperateLogger(cwd)
   }
 
   compile(input) {
@@ -72,17 +72,14 @@ class Compiler {
     if (!fs.existsSync(sourceDir)) {
       throw new Error(`${sourceDir} is not exists!`)
     }
-    console.log(chalk.green('output'), path.relative(this.cwd, `${output}.c`))
-    fs.writeFileSync(
-      `${output}.c`,
-      fs.readFileSync(TEMPLATE_FILE_C, { encoding: 'utf-8' })
-        .replace('{{len}}', localeKeys.length)
-        .replace('{{content}}', content)
-        .replace('{{maxItems}}', maxItems)
-        .replace('{{fileName}}', this.name),
-      { encoding: 'utf-8' }
-    )
-    console.log(chalk.green('output'), path.relative(this.cwd, `${output}.h`))
+    this.logger.log('output', `${output}.c`)
+    generateFile(TEMPLATE_FILE_C, `${output}.c`, {
+      len: localeKeys.length,
+      content: content,
+      maxItems: maxItems,
+      fileName: this.name
+    })
+    this.logger.log('output', `${output}.h`)
     fs.copyFileSync(TEMPLATE_FILE_H, `${output}.h`)
   }
 }
