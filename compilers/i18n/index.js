@@ -6,7 +6,6 @@ const { flatObjectProperties } = require('../../lib/utils')
 const TEMPLATE_DIR = path.resolve(__dirname, 'templates')
 const TEMPLATE_FILE_C = path.join(TEMPLATE_DIR, 'i18n.c')
 const TEMPLATE_FILE_H = path.join(TEMPLATE_DIR, 'i18n.h')
-const TEMPLATE_FILE_JS = path.join(TEMPLATE_DIR, 'i18n.js')
 
 function convertToC(arr, indent = 0) {
   const body = []
@@ -27,36 +26,17 @@ function convertToC(arr, indent = 0) {
   return [`${'\t'.repeat(indent)}{`, ...body, `${'\t'.repeat(indent)}}`]
 }
 
-class Generator {
-  constructor(name, { cwd, input, output } = {}) {
+class Compiler {
+  constructor({ cwd } = {}) {
     this.cwd = cwd
-    this.name = name
-    this.input = input
-    this.output = output
-    if (!output) {
-      const sourceDir = path.join(cwd, 'src', 'lib')
-
-      if (!fs.existsSync(sourceDir)) {
-        throw new Error(`${sourceDir} is not exists!`)
-      }
-      this.output = path.join(sourceDir, name)
-    }
+    this.name = 'i18n'
   }
 
-  generate() {
-    if (!this.input) {
-      const configDir = path.join(this.cwd, 'config')
-
-      if (!fs.existsSync(configDir)) {
-        fs.mkdirSync(configDir)
-      }
-      this.input = `${path.join(configDir, this.name)}.js`
-      console.log(chalk.green('create'), path.relative(this.cwd, this.input))
-      fs.copyFileSync(TEMPLATE_FILE_JS, this.input)
-    }
-
-    const locales = require(this.input)
+  compile(input) {
+    const locales = require(input)
     const localeKeys = Object.keys(locales)
+    const sourceDir = path.join(this.cwd, 'src', 'lib')
+    const output = path.join(sourceDir, this.name)
 
     let maxItems = 1
     let content = convertToC(
@@ -89,9 +69,12 @@ class Generator {
     })
     .join('\n')
 
-    console.log(chalk.green('create'), path.relative(this.cwd, `${this.output}.c`))
+    if (!fs.existsSync(sourceDir)) {
+      throw new Error(`${sourceDir} is not exists!`)
+    }
+    console.log(chalk.green('output'), path.relative(this.cwd, `${output}.c`))
     fs.writeFileSync(
-      `${this.output}.c`,
+      `${output}.c`,
       fs.readFileSync(TEMPLATE_FILE_C, { encoding: 'utf-8' })
         .replace('{{len}}', localeKeys.length)
         .replace('{{content}}', content)
@@ -99,9 +82,9 @@ class Generator {
         .replace('{{fileName}}', this.name),
       { encoding: 'utf-8' }
     )
-    console.log(chalk.green('create'), path.relative(this.cwd, `${this.output}.h`))
-    fs.copyFileSync(TEMPLATE_FILE_H, `${this.output}.h`)
+    console.log(chalk.green('output'), path.relative(this.cwd, `${output}.h`))
+    fs.copyFileSync(TEMPLATE_FILE_H, `${output}.h`)
   }
 }
 
-module.exports = Generator
+module.exports = Compiler
