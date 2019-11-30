@@ -35,25 +35,28 @@ class Generator {
   updateViewsSourceFile() {
     let indexOfMain = -1
     let lastIndexOfInclude = -1
-    let lastIndexOfFunction = -1
+    let lastIndexOfFunc = -1
     const file = path.join(this.sourceDir, 'views.c')
     const lines = fs.readFileSync(file, { encoding: 'utf-8' }).split('\n')
     const includeCode = `#include "views/${this.data.fileName}.h"`
-    const initFunciontCode = `\tUI_Init${this.data.className}();`
+    const initFuncCode = `UI_Init${this.data.className}()`
 
     lines.forEach((line, index) => {
       if (line.includes('#include')) {
         lastIndexOfInclude = index
       } else if (line.includes('UI_InitViews')) {
-        indexOfMain =index
-      } else if (line.includes('UI_Init')) {
-        lastIndexOfFunction = index
+        indexOfMain = index
+      } else if (line.includes(initFuncCode)) {
+        lastIndexOfFunc = index
       }
     })
-    if (indexOfMain === -1 || lastIndexOfFunction <= 0) {
+    if (indexOfMain === -1) {
       throw new Error('cannot update UI_InitViews() function body.')
     }
-    lines.splice(lastIndexOfFunction + 1, 0, initFunciontCode)
+    if (lastIndexOfFunc === -1) {
+      lastIndexOfFunc = indexOfMain + 2
+    }
+    lines.splice(lastIndexOfFunc, 0, `\t${initFuncCode};`)
     lines.splice(lastIndexOfInclude + 1, 0, includeCode)
     console.log(chalk.yellow('update'), path.relative(this.cwd, file))
     return fs.writeFileSync(file, lines.join('\n'), { encoding: 'utf-8' })
