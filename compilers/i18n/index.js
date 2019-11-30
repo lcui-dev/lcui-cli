@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
-const { flatObjectProperties } = require('../../lib/utils')
+const { flat } = require('../../lib/utils')
 
 const TEMPLATE_DIR = path.resolve(__dirname, 'templates')
 const TEMPLATE_FILE_C = path.join(TEMPLATE_DIR, 'i18n.c')
@@ -42,7 +42,7 @@ class Compiler {
     let content = convertToC(
       localeKeys.map((key) => {
         const result = [key]
-        const props = flatObjectProperties(locales[key])
+        const props = flat(locales[key])
 
         Object.keys(props).forEach((p) => {
           result.push(p, props[p])
