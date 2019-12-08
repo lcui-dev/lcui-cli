@@ -32,7 +32,7 @@ class Generator {
     const file = path.join(this.sourceDir, 'components.c')
     const lines = fs.readFileSync(file, { encoding: 'utf-8' }).split('\n')
     const includeCode = `#include "components/${this.data.fileName}.h"`
-    const initFunciontCode = `\tUI_Init${this.data.className}Component();`
+    const initFunciontCode = `\tUI_Init${this.data.className}();`
 
     lines.forEach((line, index) => {
       if (line.includes('#include')) {
