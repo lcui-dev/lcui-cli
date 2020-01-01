@@ -1,18 +1,17 @@
 const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
-const camelcase = require('camelcase')
-const decamelize = require('decamelize')
+const { snakeCase, pascalCase, paramCase } = require('change-case')
 const { format } = require('../../lib/utils')
 
 class Generator {
   constructor(name, options) {
     this.data = {
-      className: camelcase(name, { pascalCase: true }),
-      variableName: decamelize(name),
-      fileName: decamelize(name, '-'),
-      cssName: decamelize(name, '-'),
-      tagName: decamelize(name, '-')
+      className: pascalCase(name),
+      variableName: snakeCase(name),
+      fileName: paramCase(name),
+      cssName: paramCase(name),
+      tagName: paramCase(name)
     }
     this.cwd = options.cwd
     this.sourceDir = path.join(this.cwd, 'src/ui')
