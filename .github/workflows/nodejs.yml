@@ -28,9 +28,11 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm install
-    - run: npm install -g mocha
     - run: npm run build --if-present
-    - run: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-    - run: npm test
+    - name: Run test
+      run: |
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+        npm install -g mocha
+        npm test
       env:
         CI: true
