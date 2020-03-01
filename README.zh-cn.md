@@ -1,5 +1,8 @@
 # lcui-cli
 
+[![GitHub Actions](https://github.com/lc-ui/lcui-cli/workflows/Node.js%20CI/badge.svg)](https://github.com/lc-ui/lcui-cli/actions)
+[![Build Status](https://travis-ci.org/lc-ui/lcui-cli.svg?branch=master)](https://travis-ci.org/lc-ui/lcui-cli)
+
 ## 简介
 
 ([English](README.md)/**中文**)
