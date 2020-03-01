@@ -94,12 +94,12 @@ class Generator {
     const sourceFile = path.join(this.viewsSourceDir, `${name}.c`)
     const headerFile = path.join(this.viewsSourceDir, `${name}.h`)
     const styleFile = path.join(this.viewsStyleDir, `_${name}.scss`)
-  
+
     this.generateFile('view.c', sourceFile)
     this.generateFile('view.h', headerFile)
     this.generateFile('view.xml', xmlFile)
     this.generateFile('view.scss', styleFile)
-  
+
     this.updateViewsSourceFile()
     this.updateViewsStyleFile()
   }

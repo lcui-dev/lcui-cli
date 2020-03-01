@@ -26,17 +26,17 @@ function convertToC(arr, indent = 0) {
 }
 
 class Compiler {
-  constructor({ cwd } = {}) {
+  constructor({ cwd, sourceDir } = {}) {
     this.cwd = cwd
     this.name = 'i18n'
     this.logger = new FileOperateLogger(cwd)
+    this.sourceDir = sourceDir ? sourceDir : path.join(this.cwd, 'src', 'lib')
   }
 
   compile(input) {
     const locales = require(input)
     const localeKeys = Object.keys(locales)
-    const sourceDir = path.join(this.cwd, 'src', 'lib')
-    const output = path.join(sourceDir, this.name)
+    const output = path.join(this.sourceDir, this.name)
 
     let maxItems = 1
     let content = convertToC(
@@ -69,8 +69,8 @@ class Compiler {
     })
     .join('\n')
 
-    if (!fs.existsSync(sourceDir)) {
-      throw new Error(`${sourceDir} is not exists!`)
+    if (!fs.existsSync(this.sourceDir)) {
+      throw new Error(`${this.sourceDir} is not exists!`)
     }
     this.logger.log('output', `${output}.c`)
     generateFile(TEMPLATE_FILE_C, `${output}.c`, {
