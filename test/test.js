@@ -7,8 +7,8 @@ const Compiler = require('../compilers/i18n')
 describe('i18n', function () {
   describe('compiler', function () {
     const compiler = new Compiler({ cwd: __dirname, sourceDir: __dirname })
-    const sourceFile = path.join(__dirname, 'locales.c')
-    const headerFile = path.join(__dirname, 'locales.h')
+    const sourceFile = path.join(__dirname, 'i18n.c')
+    const headerFile = path.join(__dirname, 'i18n.h')
 
     if (fs.existsSync(sourceFile)) {
       fs.unlinkSync(sourceFile)
@@ -17,7 +17,7 @@ describe('i18n', function () {
       fs.unlinkSync(headerFile)
     }
 
-    compiler.compile(path.join(__dirname, 'locales.js'))
+    compiler.compile(path.join(__dirname, 'i18n.js'))
 
     it(`should output ${sourceFile}`, () => {
       assert.equal(fs.existsSync(sourceFile), true)

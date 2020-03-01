@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
-#include "locales.c"
+#include "i18n.c"
 #include <LCUI/util/charset.h>
 
 wchar_t *str2wcs(const char *str)
