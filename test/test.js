@@ -2,10 +2,11 @@ const fs = require('fs')
 const path = require('path')
 const assert = require('assert')
 const { execSync } = require('child_process')
-const { compile } = require('../lib/i18n')
+const Compiler = require('../compilers/i18n')
 
 describe('i18n', function () {
   describe('compiler', function () {
+    const compiler = new Compiler({ cwd: __dirname, sourceDir: __dirname })
     const sourceFile = path.join(__dirname, 'locales.c')
     const headerFile = path.join(__dirname, 'locales.h')
 
@@ -16,7 +17,7 @@ describe('i18n', function () {
       fs.unlinkSync(headerFile)
     }
 
-    compile(path.join(__dirname, 'locales.js'))
+    compiler.compile(path.join(__dirname, 'locales.js'))
 
     it(`should output ${sourceFile}`, () => {
       assert.equal(fs.existsSync(sourceFile), true)

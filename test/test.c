@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 		printf("cannot found text by key: %s\n", argv[2]);
 		return -3;
 	}
-	setlocale(LC_ALL, ""); 
+	setlocale(LC_ALL, "");
 	printf("%ls\n", text);
 	return 0;
 }
