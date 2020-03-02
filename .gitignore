@@ -60,5 +60,6 @@ typings/
 # next.js build output
 .next
 
-test/locales.h
-test/locales.c
+test/i18n.h
+test/i18n.c
+test/test

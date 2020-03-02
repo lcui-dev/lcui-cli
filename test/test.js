@@ -37,7 +37,7 @@ describe('i18n', function () {
         execSync('./test', { cwd: __dirname })
         assert.fail('no error output')
       } catch (err) {
-        assert.ok(true, err.message)
+        assert.ok(true, err.stdout.toString())
       }
     })
     it('should check locale exists', () => {
@@ -45,7 +45,7 @@ describe('i18n', function () {
         execSync('./test test hello', { cwd: __dirname })
         assert.fail('no error output')
       } catch (err) {
-        assert.ok(true, err.message)
+        assert.ok(true, err.stdout.toString())
       }
     })
     it('should check text exists', () => {
@@ -53,7 +53,7 @@ describe('i18n', function () {
         execSync('./test en hello', { cwd: __dirname })
         assert.fail('no error output')
       } catch (err) {
-        assert.ok(true, err.message)
+        assert.ok(true, err.stdout.toString())
       }
     })
     it('should print translation text', () => {
@@ -64,7 +64,7 @@ describe('i18n', function () {
         enText = execSync('./test en message.hello', { cwd: __dirname }).toString()
         cnText = execSync('./test cn message.hello', { cwd: __dirname }).toString()
       } catch (err) {
-        assert.fail(err.message)
+        assert.fail(err.stdout.toString())
       }
       assert.equal(enText, 'hello world\n')
       assert.equal(cnText, '你好，世界\n')
