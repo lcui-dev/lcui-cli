@@ -29,7 +29,7 @@ describe('i18n', function () {
 
   describe('app', function () {
     it('should be compiled successfully', () => {
-      execSync('gcc -Werror -o test test.c `pkg-config --libs lcui`', { cwd: __dirname })
+      execSync('gcc -Werror -o test test.c `pkg-config --libs lcui2`', { cwd: __dirname })
       assert.ok(true, 'compiled')
     })
     it('should check arguments', () => {
