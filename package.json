@@ -7,7 +7,9 @@
     "lcui": "bin/lcui.js"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
+    "version": "npm run changelog && git add CHANGELOG.md"
   },
   "author": "Liu <lc-soft@live.cn<",
   "license": "MIT",
