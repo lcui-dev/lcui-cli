@@ -14,4 +14,4 @@ module.exports = {
       hello: 'こんにちは、世界'
     }
   }
-}
+};
