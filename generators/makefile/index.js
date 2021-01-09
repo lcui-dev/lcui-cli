@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
-const { pascalCase } = require('pascal-case');
+const { pascalCase } = require('change-case');
 const { format } = require('../../lib/utils');
 
 const sourceFileExt = ['.c', 'cpp'];
