@@ -5,7 +5,7 @@ const logger = require('../lib/logger');
 const { create } = require('../lib/create');
 const { generate } = require('../lib/generator');
 const { compile } = require('../lib/compiler');
-const { build } = require('../lib/builder');
+const { build, run } = require('../lib/builder');
 const { version } = require('../package.json');
 
 function wrapAction(action) {
@@ -52,5 +52,10 @@ program
   .action(wrapAction((cmd) => {
     build({ tool: cmd.tool, mode: cmd.mode });
   }));
+
+program
+  .command('run')
+  .description('run project')
+  .action(wrapAction(run));
 
 program.version(version).parse(process.argv);
