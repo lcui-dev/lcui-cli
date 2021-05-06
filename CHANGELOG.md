@@ -1,3 +1,12 @@
+## [0.3.1](https://github.com/lc-ui/lcui-cli/compare/v0.3.0...v0.3.1) (2021-05-06)
+
+
+### Bug Fixes
+
+* **utils:** format() does not replace key values with dots ([fb80155](https://github.com/lc-ui/lcui-cli/commit/fb801553ab6b3fad74253d8e84468ede5129327c))
+
+
+
 # [0.3.0](https://github.com/lc-ui/lcui-cli/compare/v0.2.0...v0.3.0) (2021-01-12)
 
 
