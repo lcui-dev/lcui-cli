@@ -28,6 +28,7 @@
     "fs-extra": "^8.1.0",
     "request": "^2.88.2",
     "request-progress": "^3.0.0",
+    "sass": "^1.32.12",
     "simple-git": "^1.132.0"
   },
   "devDependencies": {
