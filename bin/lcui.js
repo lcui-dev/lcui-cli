@@ -3,6 +3,7 @@
 const program = require('commander');
 const logger = require('../lib/logger');
 const { create } = require('../lib/create');
+const { setup } = require('../lib/setup');
 const { generate } = require('../lib/generator');
 const { compile } = require('../lib/compiler');
 const { build, run } = require('../lib/builder');
@@ -28,6 +29,11 @@ program
   .command('generate <type> <name>')
   .description('generate files with template of specified type')
   .action(wrapAction(generate));
+
+program
+  .command('setup')
+  .description('set up the development environment for the current project')
+  .action(wrapAction(setup));
 
 program
   .command('compile <type>')
