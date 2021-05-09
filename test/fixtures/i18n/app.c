@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
-#include "i18n.c"
-#include <LCUI/util/charset.h>
+#include <LCUI.h>
+#include "i18n.h"
 
 wchar_t *str2wcs(const char *str)
 {
