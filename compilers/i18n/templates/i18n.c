@@ -1,3 +1,5 @@
+#include <LCUI_Build.h>
+#include <LCUI/util/dict.h>
 #include "{{fileName}}.h"
 
 #define I18N_CONFIG_LEN {{len}}

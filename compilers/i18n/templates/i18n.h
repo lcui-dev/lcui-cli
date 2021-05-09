@@ -1,8 +1,6 @@
 #include <wchar.h>
-#include <LCUI_Build.h>
-#include <LCUI/util/dict.h>
 
-typedef Dict i18n_t;
+typedef struct Dict i18n_t;
 
 extern i18n_t *i18n_create(const wchar_t *locale);
 
