@@ -61,6 +61,7 @@ program
     }
     return defaultTool;
   }, 'auto')
+  .option('-c, --clean', 'clean the build folder before building')
   .action(wrapAction(build));
 
 program
