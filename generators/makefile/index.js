@@ -88,7 +88,7 @@ class Generator {
       path.resolve(this.cwd, file),
       format(
         this.readTemplateFile(file),
-        { modules: modules.map((name) => `    ${name}`).join('\n') },
+        { modules: modules.map((name) => `    ${name}`).reverse().join('\n') },
         ['\\[\\[', '\\]\\]']
       )
     );
