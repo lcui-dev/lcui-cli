@@ -49,15 +49,19 @@ program
     }
     return defaultMode;
   }, 'debug')
+  .option('-m, --arch <arch>', 'specify the architecture for code generation', (arch, defaultArch) => {
+    if (['x64', 'x86'].includes(arch.toLowerCase())) {
+      return arch.toLowerCase();
+    }
+    return defaultArch;
+  }, 'x64')
   .option('-t, --tool <tool>', 'specify build tool', (tool, defaultTool) => {
     if (['cmake', 'xmake'].includes(tool.toLowerCase())) {
       return tool.toLowerCase();
     }
     return defaultTool;
   }, 'auto')
-  .action(wrapAction((cmd) => {
-    build({ tool: cmd.tool, mode: cmd.mode });
-  }));
+  .action(wrapAction(build));
 
 program
   .command('run')
