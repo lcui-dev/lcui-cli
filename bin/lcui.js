@@ -26,7 +26,7 @@ program
   .action(wrapAction(create));
 
 program
-  .command('generate <type> <name>')
+  .command('generate <type> [name]')
   .description('generate files with template of specified type')
   .action(wrapAction(generate));
 

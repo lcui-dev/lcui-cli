@@ -29,12 +29,13 @@ describe('i18n', () => {
       fs.emptyDirSync(path.join(projectDir, 'src'));
       fs.mkdirSync(path.join(projectDir, 'src', 'lib'));
       fs.copyFileSync(path.join(cwd, 'app.c'), path.join(projectDir, 'src', 'app.c'));
-      fs.copyFileSync(path.join(cwd, 'config.js'), path.join(projectDir, 'config', 'i18n.js'));
     });
     it('the configuration file should be compiled successfully', function () {
       this.timeout(10000);
       assert.strictEqual(projectCreated, true);
+      execSync('lcui generate i18n', { cwd: projectDir });
       execSync('lcui compile i18n', { cwd: projectDir });
+      assert.strictEqual(fs.existsSync(path.join(projectDir, 'config', 'i18n.js')), true);
       assert.strictEqual(fs.existsSync(path.join(projectDir, 'src', 'lib', 'i18n.c')), true);
       assert.strictEqual(fs.existsSync(path.join(projectDir, 'src', 'lib', 'i18n.h')), true);
     });

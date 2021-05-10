@@ -5,7 +5,8 @@ const { snakeCase, pascalCase, paramCase } = require('change-case');
 const { format } = require('../../lib/utils');
 
 class Generator {
-  constructor(name, options) {
+  constructor(inputName, options) {
+    const name = inputName || 'view';
     this.data = {
       className: `${pascalCase(name)}View`,
       variableName: snakeCase(name),

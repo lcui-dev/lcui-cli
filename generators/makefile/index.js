@@ -10,7 +10,7 @@ const xmakeFile = 'xmake.lua';
 
 class Generator {
   constructor(name, options) {
-    this.name = name;
+    this.name = ['xmake', 'cmake'].includes(name) ? name : 'cmake';
     this.cwd = options.cwd;
     this.templatesDir = path.join(__dirname, 'templates');
     this.sourceDir = path.join(this.cwd, 'src');
