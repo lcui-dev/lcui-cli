@@ -1,7 +1,7 @@
 # lcui-cli
 
 [![GitHub Actions](https://github.com/lc-ui/lcui-cli/workflows/Node.js%20CI/badge.svg)](https://github.com/lc-ui/lcui-cli/actions)
-[![Build Status](https://travis-ci.org/lc-ui/lcui-cli.svg?branch=master)](https://travis-ci.org/lc-ui/lcui-cli)
+[![codecov](https://codecov.io/gh/lc-ui/lcui-cli/branch/master/graph/badge.svg?token=USK2SXHC86)](https://codecov.io/gh/lc-ui/lcui-cli)
 
 ## 简介
 
@@ -36,17 +36,23 @@ npm install -g @lcui/cli
 yarn global add @lcui/cli
 ```
 
-创建一个项目：
+然后运行以下命令：
 
 ``` bash
+# 创建一个项目
 lcui create my-project
-```
 
-进入项目目录并运行它：
-
-``` bash
+# 进入项目目录
 cd my-project
-npm run start
+
+# 设置项目的开发环境
+lcui setup
+
+# 构建项目
+lcui build
+
+# 运行项目
+lcui run
 ```
 
 如果你已经准备好开发 LCUI 应用程序，可以试试以下命令：
@@ -58,11 +64,11 @@ lcui generate widget MyWidget
 # 创建一个视图
 lcui generate view MyView
 
-# 创建用于国际化的配置文件
-lcui generate i18n i18n
+# 创建用于国际化的翻译配置文件
+lcui generate i18n
 
 # 将翻译文件编译为 C 代码 （默认编译 config/i18n.js 为 src/lib/i18n.c 和 src/lib/i18n.h）
-lcui ci18n
+lcui compile i18n
 ```
 
 ## 许可

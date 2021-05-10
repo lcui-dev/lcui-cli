@@ -1,7 +1,7 @@
 # lcui-cli
 
 [![GitHub Actions](https://github.com/lc-ui/lcui-cli/workflows/Node.js%20CI/badge.svg)](https://github.com/lc-ui/lcui-cli/actions)
-[![Build Status](https://travis-ci.org/lc-ui/lcui-cli.svg?branch=master)](https://travis-ci.org/lc-ui/lcui-cli)
+[![codecov](https://codecov.io/gh/lc-ui/lcui-cli/branch/master/graph/badge.svg?token=USK2SXHC86)](https://codecov.io/gh/lc-ui/lcui-cli)
 
 ## Introduction
 
@@ -34,17 +34,23 @@ npm install -g @lcui/cli
 yarn global add @lcui/cli
 ```
 
-Create a project:
+Then run the following commands:
 
 ``` bash
+# Create a porject
 lcui create my-project
-```
 
-Go into project directory and run it:
-
-``` bash
+# Enter the project directory
 cd my-project
-npm run start
+
+# set up the development environment for this project
+lcui setup
+
+# Build project
+lcui build
+
+# run project
+lcui run
 ```
 
 If you are ready to develop an LCUI application, you can try the following commands:
@@ -57,10 +63,10 @@ lcui generate widget MyWidget
 lcui generate view MyView
 
 # Create a internationalization (i18n) config file
-lcui generate i18n i18n
+lcui generate i18n
 
 # Compile i18n config file to C code. (default compile config/i18n.js to src/lib/i18n.c and src/lib/i18n.h)
-lcui ci18n
+lcui compile i18n
 ```
 
 ## License
