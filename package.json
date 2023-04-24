@@ -34,7 +34,7 @@
     "simple-git": "^3.3.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^12.1.1",
+    "@commitlint/cli": "^17.6.1",
     "@commitlint/config-conventional": "^12.1.1",
     "codecov": "^3.8.2",
     "husky": "^6.0.0",
