@@ -60,5 +60,6 @@ typings/
 # next.js build output
 .next
 
-test/fixtures/i18n/project
+test/fixtures/*/project
 *.zip
+.vscode
