@@ -14,7 +14,7 @@ function wrapAction(action) {
     try {
       await action(...args);
     } catch (err) {
-      logger.error(err.message);
+      console.error(err);
       process.exit(err.code);
     }
   };
@@ -37,7 +37,7 @@ program
 
 program
   .command('compile <type>')
-  .description('compile config file of the specified type to C code')
+  .description('compile files of the specified type to C code')
   .action(wrapAction(compile));
 
 program
