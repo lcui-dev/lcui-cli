@@ -1,10 +1,10 @@
-const fs = require('fs');
-const path = require('path');
-const chalk = require('chalk');
-const { snakeCase, pascalCase, paramCase } = require('change-case');
-const { format } = require('../../lib/utils');
+import fs from 'fs';
+import path from 'path';
+import chalk from 'chalk';
+import { snakeCase, pascalCase, paramCase } from 'change-case';
+import { format } from '../../lib/utils.js';
 
-class Generator {
+export default class Generator {
   constructor(inputName, options) {
     const name = inputName || 'widget';
     this.data = {
@@ -88,5 +88,3 @@ class Generator {
     this.updateComponentStyleFile();
   }
 }
-
-module.exports = Generator;

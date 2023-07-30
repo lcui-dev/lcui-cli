@@ -1,10 +1,6 @@
-const { compileJson } = require("./json");
+import { compileJson } from "./json.js";
 
-function compileJavaScriptFile(filePath) {
-  const data = require(filePath);
+export async function compileJavaScriptFile(filePath) {
+  const data = await import(filePath);
   return compileJson(data, { filePath });
-}
-
-module.exports = {
-  compileJavaScriptFile
 }

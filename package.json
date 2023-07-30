@@ -1,6 +1,7 @@
 {
   "name": "@lcui/cli",
-  "version": "0.4.0",
+  "version": "1.0.0",
+  "type": "module",
   "description": "Command line interface for rapid LCUI development",
   "main": "index.js",
   "bin": {
@@ -31,6 +32,7 @@
     "fast-xml-parser": "^4.2.2",
     "fs-extra": "^10.0.0",
     "got": "^12.5.3",
+    "os-locale": "^6.0.2",
     "sass": "^1.63.2",
     "simple-git": "^3.3.0",
     "yaml": "^2.3.1"

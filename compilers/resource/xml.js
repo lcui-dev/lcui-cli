@@ -1,8 +1,8 @@
-const fs = require("fs");
-const { XMLParser } = require("fast-xml-parser");
-const { compileJson } = require("./json");
+import fs from "fs";
+import { XMLParser } from "fast-xml-parser";
+import { compileJson } from "./json.js";
 
-function compileXmlFile(filePath) {
+export function compileXmlFile(filePath) {
   const parser = new XMLParser({
     ignoreAttributes: false,
     ignorePiTags: true,
@@ -13,7 +13,3 @@ function compileXmlFile(filePath) {
   const xmlData = parser.parse(content);
   return compileJson(xmlData["lcui-app"], { filePath });
 }
-
-module.exports = {
-  compileXmlFile
-};

@@ -21,12 +21,7 @@ LCUI CLI 致力于将 LCUI 生态中的工具基础标准化。
 
 - [Git](https://git-scm.com)
 - [Node.js](https://nodejs.org/en/download/) (自带 [npm](http://npmjs.com))
-- [LCPkg](https://github.com/lc-soft/lcpkg):
-    ```bash
-    npm install -g lcpkg
-    lcpkg setup
-    ```
-- [CMake](https://cmake.org/) 或 [XMake](https://xmake.io/)
+- [XMake](https://xmake.io/)
 
 安装：
 
@@ -45,14 +40,11 @@ lcui create my-project
 # 进入项目目录
 cd my-project
 
-# 设置项目的开发环境
-lcui setup
-
 # 构建项目
-lcui build
+xmake
 
 # 运行项目
-lcui run
+xmake run
 ```
 
 如果你已经准备好开发 LCUI 应用程序，可以试试以下命令：
@@ -63,12 +55,6 @@ lcui generate widget MyWidget
 
 # 创建一个视图
 lcui generate view MyView
-
-# 创建用于国际化的翻译配置文件
-lcui generate i18n
-
-# 将翻译文件编译为 C 代码 （默认编译 config/i18n.js 为 src/lib/i18n.c 和 src/lib/i18n.h）
-lcui compile i18n
 ```
 
 ## 许可

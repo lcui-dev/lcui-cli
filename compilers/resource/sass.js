@@ -1,9 +1,5 @@
-const sass = require('sass');
+import sass from 'sass';
 
-function compileSassFile(file) {
+export function compileSassFile(file) {
   return sass.compile(file);
-}
-
-module.exports = {
-  compileSassFile
 }

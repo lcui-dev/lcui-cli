@@ -1,6 +1,6 @@
-const fs = require("fs");
-const { parse } = require('yaml');
-const { compileJson } = require("./json");
+import fs from "fs";
+import { parse } from 'yaml';
+import { compileJson } from "./json.js";
 
 function compileYamlFile(filePath) {
   const content = fs.readFileSync(filePath, { encoding: "utf-8" });
@@ -8,6 +8,6 @@ function compileYamlFile(filePath) {
   return compileJson(data, { filePath });
 }
 
-module.exports = {
+export {
   compileYamlFile
 }

@@ -1,11 +1,11 @@
-const fs = require("fs");
-const path = require("path");
+import fs from "fs";
+import path from "path";
 
 function toIdent(str) {
   return str.replace(/[^a-zA-Z0-9]/g, "_");
 }
 
-function compileJson(jsonData, { filePath }) {
+export function compileJson(jsonData, { filePath }) {
   let count = 0;
   let resourceCount = 0;
   const { name: fileName, base: fileBase } = path.parse(filePath);
@@ -44,7 +44,6 @@ function compileJson(jsonData, { filePath }) {
         children.push([k, data[k]]);
       });
     }
-
     switch (name) {
       case "ui":
         ident = `${identPrefix}_parent`;
@@ -58,7 +57,6 @@ function compileJson(jsonData, { filePath }) {
         } else if (attrs.type === "text/css") {
           let cssFilePath;
           let cssText;
-
           if (attrs.src) {
             cssFilePath = path.resolve(filePath, "..", attrs.src);
             cssText = fs.readFileSync(cssFilePath, {
@@ -125,7 +123,6 @@ function compileJson(jsonData, { filePath }) {
         });
         break;
     }
-
     children
       .map(([childName, childData]) => translateNode(childName, childData))
       .forEach((childIdent) => {
@@ -135,9 +132,7 @@ function compileJson(jsonData, { filePath }) {
       });
     return ident;
   }
-
   translateNode("lcui-app", jsonData);
-
   return [
     `/** This file is generated from ${fileBase} */`,
     "",
@@ -171,12 +166,11 @@ function compileJson(jsonData, { filePath }) {
   ].join("\n");
 }
 
-function compileJsonFile(filePath) {
-  const data = fs.readFileSync(filePath, { encoding: "utf-8" });
-  return compileJson(JSON.parse(data), { filePath });
+export function compileJsonFile(filePath) {
+  const data = fs.readFileSync(filePath, {
+    encoding: "utf-8",
+  });
+  return compileJson(JSON.parse(data), {
+    filePath,
+  });
 }
-
-module.exports = {
-  compileJson,
-  compileJsonFile,
-};

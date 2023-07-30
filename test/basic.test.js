@@ -1,7 +1,7 @@
-const fs = require('fs-extra');
-const path = require('path');
-const assert = require('assert');
-const { execSync } = require('child_process');
+const fs from 'fs-extra');
+const path from 'path');
+const assert from 'assert');
+const { execSync } from 'child_process');
 
 describe('basic', () => {
   const cwd = path.resolve(__dirname, 'fixtures', 'basic');

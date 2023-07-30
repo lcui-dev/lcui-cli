@@ -1,9 +1,13 @@
-const fs = require("fs");
-const path = require("path");
-const { FileOperateLogger, loadConfigFile } = require("../../lib/utils");
+import fs from "fs-extra";
+import path from "path";
+import { fileURLToPath } from "url";
+import { FileOperateLogger, loadConfigFile } from "../../lib/utils.js";
 
 const OUTPUT_DIR = "src/lib";
-const TEMPLATE_DIR = path.resolve(__dirname, "templates");
+const TEMPLATE_DIR = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "templates"
+);
 const TEMPLATE_FILE_C = path.join(TEMPLATE_DIR, "router.c");
 const TEMPLATE_FILE_H = path.join(TEMPLATE_DIR, "router.h");
 
@@ -135,7 +139,7 @@ class ConfigCompiler {
   }
 }
 
-class Compiler {
+export default class Compiler {
   constructor({ cwd, configFile } = {}) {
     this.name = "router";
     this.cwd = cwd;
@@ -198,5 +202,3 @@ class Compiler {
     this.updateComponentsSourceFile();
   }
 }
-
-module.exports = Compiler;

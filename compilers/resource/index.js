@@ -1,10 +1,10 @@
-const fs = require("fs");
-const path = require("path");
-const { FileOperateLogger } = require("../../lib/utils");
-const { compileJavaScriptFile } = require("./javascript");
-const { compileJsonFile } = require("./json");
-const { compileXmlFile } = require("./xml");
-const { compileYamlFile } = require("./yaml");
+import fs from "fs";
+import path from "path";
+import { FileOperateLogger } from "../../lib/utils.js";
+import { compileJavaScriptFile } from "./javascript.js";
+import { compileJsonFile } from "./json.js";
+import { compileXmlFile } from "./xml.js";
+import { compileYamlFile } from "./yaml.js";
 
 class ResourceCompiler {
   constructor({ cwd, sourceDir } = {}) {
@@ -13,13 +13,11 @@ class ResourceCompiler {
     this.logger = new FileOperateLogger(cwd);
     this.sourceDir = sourceDir || path.join(this.cwd, "src", "ui");
   }
-
   compile() {
     const compileFiles = (dirPath) => {
       fs.readdirSync(dirPath).forEach((file) => {
         const filePath = path.join(dirPath, file);
         const stat = fs.statSync(filePath);
-
         if (stat.isDirectory()) {
           compileFiles(filePath);
           return;
@@ -27,7 +25,6 @@ class ResourceCompiler {
         if (!stat.isFile()) {
           return;
         }
-
         let content;
         switch (path.parse(file).ext.toLowerCase()) {
           case ".xml":
@@ -46,13 +43,12 @@ class ResourceCompiler {
           default:
             return;
         }
-        this.logger.log('output', `${filePath}.h`);
+        this.logger.log("output", `${filePath}.h`);
         fs.writeFileSync(`${filePath}.h`, content);
       });
     };
-
     compileFiles(this.sourceDir);
   }
 }
 
-module.exports = ResourceCompiler;
+export default ResourceCompiler;
