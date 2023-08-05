@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import fs from "fs-extra";
 import path from "path";
-import program from "commander";
+import { Command } from "commander";
 import { fileURLToPath } from "url";
 import { create } from "../lib/create.js";
 import { generate } from "../lib/generator.js";
-import { compile } from "../lib/compiler.js";
+import { compile } from "../lib/compiler/index.js";
 
 const { version } = fs.readJSONSync(
   path.join(path.dirname(fileURLToPath(import.meta.url)), "../package.json")
@@ -22,6 +22,8 @@ function wrapAction(action) {
   };
 }
 
+const program = new Command();
+
 program
   .command("create <project-name>")
   .description("create a new LCUI project")
@@ -33,8 +35,14 @@ program
   .action(wrapAction(generate));
 
 program
-  .command("compile <type>")
-  .description("compile files of the specified type to C code")
+  .command("compile")
+  .description("compile resource files into C soruce files")
+  .argument("<filePath>", "file or directory")
+  .option(
+    "--type <name>",
+    "specify which type of compiler to use to compile files",
+    "auto"
+  )
   .action(wrapAction(compile));
 
 program.version(version).parse(process.argv);
