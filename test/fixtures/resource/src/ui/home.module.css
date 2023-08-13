@@ -1,0 +1,15 @@
+:global(.home) {
+  padding: 20px;
+}
+
+.button {
+  padding: 5px 10px;
+  text-align: center;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.text {
+  color: #f00;
+  font-size: 24px;
+}
