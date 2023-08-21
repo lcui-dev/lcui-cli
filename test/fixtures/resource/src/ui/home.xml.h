@@ -22,7 +22,7 @@ root {\
 ";
 
 
-static void home_load_template(ui_widget_t *home_parent, home_refs_t *refs)
+static void home_load_template(ui_widget_t *parent, home_refs_t *refs)
 {
         ui_widget_t *w[5];
 
@@ -42,10 +42,12 @@ static void home_load_template(ui_widget_t *home_parent, home_refs_t *refs)
         w[4] = ui_create_widget(NULL);
         ui_widget_set_text(w[4], "Message has been saved!");
         ui_widget_append(refs->feedback, w[4]);
-        ui_widget_append(home_parent, w[1]);
-        ui_widget_append(home_parent, refs->input_message);
-        ui_widget_append(home_parent, refs->btn_save_message);
-        ui_widget_append(home_parent, refs->feedback);
+        ui_widget_append(parent, w[1]);
+        ui_widget_append(parent, refs->input_message);
+        ui_widget_append(parent, refs->btn_save_message);
+        ui_widget_append(parent, refs->feedback);
+        ui_widget_append(parent, parent);
+        ui_widget_append(w[0], parent);
 }
 
 static void home_load_resources(void)

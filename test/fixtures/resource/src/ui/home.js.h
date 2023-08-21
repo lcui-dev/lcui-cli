@@ -1,4 +1,4 @@
-/** This file is generated from home.json */
+/** This file is generated from home.js */
 
 #include <ui.h>
 
@@ -10,7 +10,7 @@ typedef struct {
 
 static ui_widget_prototype_t *home_proto;
 
-static const char *css_str_1 = "\
+static const char *css_str_0 = "\
 root {\
   background-color: #f6f8fa;\
 }\
@@ -56,6 +56,6 @@ static void home_load_template(ui_widget_t *parent, home_refs_t *refs)
 
 static void home_load_resources(void)
 {
-        ui_load_css_string(css_str_1, "home.css");
+        ui_load_css_string(css_str_0, "home.css");
         pd_font_library_load_file("iconfont.ttf");
 }

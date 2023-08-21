@@ -1,4 +1,4 @@
-/** This file is generated from Home.yml */
+/** This file is generated from home.yml */
 
 #include <ui.h>
 
@@ -6,9 +6,11 @@ typedef struct {
         ui_widget_t *input_message;
         ui_widget_t *btn_save_message;
         ui_widget_t *feedback;
-} Home_refs_t;
+} home_refs_t;
 
-static const char *css_str_0 = "\
+static ui_widget_prototype_t *home_proto;
+
+static const char *css_str_3 = "\
 root {\
   background-color: #f6f8fa;\
 }\
@@ -22,7 +24,12 @@ root {\
 ";
 
 
-static void Home_load_template(ui_widget_t *Home_parent, Home_refs_t *refs)
+static void home_init_prototype(void)
+{
+        home_proto = ui_create_widget_prototype("home", NULL);
+}
+
+static void home_load_template(ui_widget_t *parent, home_refs_t *refs)
 {
         ui_widget_t *w[4];
 
@@ -41,14 +48,14 @@ static void Home_load_template(ui_widget_t *Home_parent, Home_refs_t *refs)
         w[3] = ui_create_widget(NULL);
         ui_widget_set_text(w[3], "Message has been saved!");
         ui_widget_append(refs->feedback, w[3]);
-        ui_widget_append(Home_parent, w[0]);
-        ui_widget_append(Home_parent, refs->input_message);
-        ui_widget_append(Home_parent, refs->btn_save_message);
-        ui_widget_append(Home_parent, refs->feedback);
+        ui_widget_append(parent, w[0]);
+        ui_widget_append(parent, refs->input_message);
+        ui_widget_append(parent, refs->btn_save_message);
+        ui_widget_append(parent, refs->feedback);
 }
 
-static void Home_load_resources(void)
+static void home_load_resources(void)
 {
-        ui_load_css_string(css_str_0, "home.css");
+        ui_load_css_string(css_str_3, "home.css");
         pd_font_library_load_file("iconfont.ttf");
 }
