@@ -4,7 +4,6 @@ import path from "path";
 import { Command } from "commander";
 import { fileURLToPath } from "url";
 import { create } from "../lib/create.js";
-import { generate } from "../lib/generator.js";
 import { compile } from "../lib/compiler/index.js";
 
 const { version } = fs.readJSONSync(
@@ -28,11 +27,6 @@ program
   .command("create <project-name>")
   .description("create a new LCUI project")
   .action(wrapAction(create));
-
-program
-  .command("generate <type> [name]")
-  .description("generate files with template of specified type")
-  .action(wrapAction(generate));
 
 program
   .command("compile")
