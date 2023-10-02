@@ -1,3 +1,9 @@
+interface ModuleInfo {
+  path: string;
+  outputPath: string;
+  content: LoaderInput;
+}
+
 interface ImporterContext {
   /**
    * 模块所在的目录
@@ -11,20 +17,31 @@ interface ImporterContext {
   /** 资源文件的路径 */
   resourcePath: string;
 
+  /** 资源文件的输出路径 */
+  resourceOutputPath: string;
+
   appDirPath: string;
   buildDirPath: string;
   assetsDirPath: string;
 
-  importModule(name: string): Promise<void>;
-
-  generateModule(name: string, generator: () => Promise<void>): void;
-
   emitError(err: Error): void;
+
+  /** 确定资源文件的输出路径 */
+  resolveOutput(name: string): string;
+
+  /** 确定资源文件的模块路径 */
+  resolveModule(name: string): string;
+
+  /** 引入模块 */
+  importModule(name: string): Promise<any>;
+
+  /** 生成模块 */
+  generateModule(name: string, generator: () => Promise<void>): Promise<void>;
 }
 
 interface LoaderContext extends ImporterContext {
-  async(): (err: Error, data?: LoaderInput) => void;
-  resolve(path: string): string;
+  /** 获取配置选项 */
+  getOptions(): any;
 }
 
 interface ResourceNode {
