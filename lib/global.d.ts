@@ -1,7 +1,25 @@
-interface ModuleInfo {
+interface ModuleMetadata {
+  type: "javascript" | "asset";
+
+  /** 资源文件所在路径 */
   path: string;
+
+  /** 资源文件输出路径 */
   outputPath: string;
-  content: LoaderInput;
+
+  /** 加载该资源时需要包含的 C 头文件 */
+  headerFiles: string[];
+
+  /**
+   * 初始化代码
+   * 加载该资源所需要执行的 C 代码
+   **/
+  initCode: string;
+}
+
+interface Module {
+  default: any;
+  metadata: ModuleMetadata;
 }
 
 interface ImporterContext {
@@ -32,11 +50,14 @@ interface ImporterContext {
   /** 确定资源文件的模块路径 */
   resolveModule(name: string): string;
 
-  /** 引入模块 */
-  importModule(name: string): Promise<any>;
+  /** 引入与资源文件对应的模块 */
+  importModule(name: string): Promise<Module>;
 
   /** 生成模块 */
-  generateModule(name: string, generator: () => Promise<void>): Promise<void>;
+  generateModule(
+    name: string,
+    generator: () => Promise<string | Buffer>
+  ): Promise<void>;
 }
 
 interface LoaderContext extends ImporterContext {
@@ -52,6 +73,10 @@ interface ResourceNode {
 }
 
 type LoaderOptions = Record<string, any>;
+
+interface UILoaderOptions extends LoaderOptions {
+  indent?: number;
+}
 
 type LoaderInput = string | Buffer | ResourceNode;
 
@@ -77,8 +102,9 @@ interface ModuleRule {
 
 interface ModuleCacheItem {
   state: "pending" | "loading" | "loaded";
-  promise: Promise<LoaderInput>;
-  resolve: () => void;
+  outputPath: string;
+  exports: Promise<any>;
+  resolve: (exports: any) => void;
   reject: (err: Error) => void;
 }
 
