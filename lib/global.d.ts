@@ -17,7 +17,7 @@ interface ModuleMetadata {
   initCode: string;
 }
 
-interface Module {
+interface Module extends Record<string, nay> {
   default: any;
   metadata: ModuleMetadata;
 }
@@ -40,7 +40,6 @@ interface ImporterContext {
 
   appDirPath: string;
   buildDirPath: string;
-  assetsDirPath: string;
 
   emitError(err: Error): void;
 
@@ -85,15 +84,12 @@ type Loader = (
   content: LoaderInput
 ) => LoaderInput | Promise<undefined>;
 
-type ModuleRuleUseConfig =
-  | string
-  | (
-      | {
-          loader: string | Loader;
-          options: LoaderOptions;
-        }
-      | string
-    )[];
+type LoaderRule = {
+  loader: string | Loader;
+  options: LoaderOptions;
+};
+
+type ModuleRuleUseConfig = string | (LoaderRule | string)[];
 
 interface ModuleRule {
   test: RegExp | ((path: string) => boolean);
@@ -103,8 +99,8 @@ interface ModuleRule {
 interface ModuleCacheItem {
   state: "pending" | "loading" | "loaded";
   outputPath: string;
-  exports: Promise<any>;
-  resolve: (exports: any) => void;
+  exports: Promise<Module>;
+  resolve: (exports: Module) => void;
   reject: (err: Error) => void;
 }
 

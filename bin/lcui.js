@@ -4,7 +4,7 @@ import path from "path";
 import { Command } from "commander";
 import { fileURLToPath } from "url";
 import { create } from "../lib/create.js";
-import { compile } from "../lib/compiler/index.js";
+import compile from "../lib/compiler/index.js";
 
 const { version } = fs.readJSONSync(
   path.join(path.dirname(fileURLToPath(import.meta.url)), "../package.json")
@@ -32,11 +32,6 @@ program
   .command("compile")
   .description("compile resource files into C soruce files")
   .argument("<filePath>", "file or directory")
-  .option(
-    "--type <name>",
-    "specify which type of compiler to use to compile files",
-    "auto"
-  )
   .action(wrapAction(compile));
 
 program.version(version).parse(process.argv);
