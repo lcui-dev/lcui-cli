@@ -25,13 +25,14 @@ const program = new Command();
 
 program
   .command("create <project-name>")
-  .description("create a new LCUI project")
+  .description("Create a new LCUI project")
   .action(wrapAction(create));
 
 program
   .command("compile")
-  .description("compile resource files into C soruce files")
-  .argument("<filePath>", "file or directory")
+  .description("Compile resource files into C soruce files")
+  .argument("<filePath>", "File or directory")
+  .option("--verbose", "More detailed log output")
   .action(wrapAction(compile));
 
 program.version(version).parse(process.argv);
