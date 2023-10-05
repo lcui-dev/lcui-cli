@@ -22,7 +22,8 @@ interface Module extends Record<string, nay> {
   metadata: ModuleMetadata;
 }
 
-interface ImporterContext {
+interface CompilerOptions {
+  verbose?: boolean;
   /**
    * 模块所在的目录
    * 可以用作解析其他模块成员的上下文
@@ -32,14 +33,17 @@ interface ImporterContext {
   /** 根目录 */
   rootContext: string;
 
+  appDirPath: string;
+  buildDirPath: string;
+
+}
+
+interface CompilerContext extends CompilerOptions {
   /** 资源文件的路径 */
   resourcePath: string;
 
   /** 资源文件的输出路径 */
   resourceOutputPath: string;
-
-  appDirPath: string;
-  buildDirPath: string;
 
   emitError(err: Error): void;
 
@@ -57,9 +61,11 @@ interface ImporterContext {
     name: string,
     generator: () => Promise<string | Buffer>
   ): Promise<void>;
+
+  logger: import("winston").Logger
 }
 
-interface LoaderContext extends ImporterContext {
+interface LoaderContext extends CompilerContext {
   /** 获取配置选项 */
   getOptions(): any;
 }
