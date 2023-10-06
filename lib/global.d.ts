@@ -56,6 +56,9 @@ interface CompilerContext extends CompilerOptions {
   /** 引入与资源文件对应的模块 */
   importModule(name: string): Promise<Module>;
 
+  /** 输出文件 */
+  emitFile(name: string, content: stirng | Buffer): void;
+
   /** 生成模块 */
   generateModule(
     name: string,
