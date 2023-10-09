@@ -9,50 +9,49 @@
 
 LCUI CLI is command line interface for rapid LCUI development. providing:
 
-- Mininal LCUI project template
-- Generator for components and views
-- Internationalization (i18n)
+- Project scaffolding.
+- A compiler similar to Webpack that can load specific types of files and compile them into C code using a loader. The following loaders exist:
+  - ts-loader: Load JavaScript and TypeScript files, supporting JSX syntax. You can write LCUI widgets like you would write React components.
+  - css-loader: Load CSS files, supporting the CSS Modules.
+  - sass-loader: Load the Sass/SCSS file and compile it into CSS.
+  - json-loader: Load JSON files, allowing you to describe the interface in JSON format.
+  - xml-loader: Load an XML file, allowing you to describe the interface in XML format.
+  - yaml-loader: Load YAML files, allowing you to describe the interface in YAML format.
 
-## Quick start
+## Installation
 
-Before using this tool, you need install the following tools on your computer:
+Before installing this tool, you need to install these dependencies on your computer:
 
 - [Git](https://git-scm.com)
 - [Node.js](https://nodejs.org/en/download/) (which comes with [npm](http://npmjs.com))
 - [XMake](https://xmake.io/)
 
-To install the new package, use one of the following commands. You need administrator privileges to execute these unless npm was installed on your system through a Node.js version manager (e.g. n or nvm).
+Afterwards, run:
 
 ``` bash
 npm install -g @lcui/cli
-# OR
+# Or
 yarn global add @lcui/cli
 ```
 
-Then run the following commands:
+## Usage
 
-``` bash
-# Create a porject
+Create an LCUI application project:
+
+```bash
 lcui create my-project
-
-# Enter the project directory
-cd my-project
-
-# Build project
-xmake
-
-# run project
-xmake run
 ```
 
-If you are ready to develop an LCUI application, you can try the following commands:
+Compile all files in the src directory:
 
-``` bash
-# Create a component (widget)
-lcui generate widget MyWidget
+```bash
+lcui compile src
+```
 
-# Create a view
-lcui generate view MyView
+Compile a single file:
+
+```bash
+lcui compile src/pages/home/index.tsx
 ```
 
 ## License

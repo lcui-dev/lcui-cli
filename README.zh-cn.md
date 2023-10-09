@@ -7,23 +7,28 @@
 
 ([English](README.md)/**中文**)
 
-LCUI CLI 是一个能让你基于 LCUI 进行快速开发的命令行工具，提供：
+LCUI CLI 是一个能帮助你快速开发 LCUI 应用程序的工具，提供：
 
-- 最小 LCUI 应用模板
-- 组件和视图生成器
-- 国际化方案
+- 项目脚手架。
+- 类似于 Webpack 的编译器，能靠加载器加载特定类型的文件并将其编译为 C 代码。现有以下加载器：
+  - ts-loader：加载 JavaScript、TypeScript 文件，支持 JSX 语法。你可以像编写 React 组件一样编写 LCUI 部件。
+  - css-loader：加载 CSS 文件，支持 CSS Modules 写法。
+  - sass-loader： 加载 Sass/SCSS 文件并将其编译为 CSS。
+  - json-loader：加载 JSON 文件，允许你以 JSON 格式描述界面。
+  - xml-loader：加载 XML 文件，允许你以 XML 格式描述界面。
+  - yaml-loader：加载 YAML 文件，允许你以 YAML 格式描述界面。
 
 LCUI CLI 致力于将 LCUI 生态中的工具基础标准化。
 
-## 快速开始
+## 安装
 
-在这个工具之前，你需要在你的计算机上安装这些依赖:
+在安装这个工具之前，你需要在你的计算机上安装这些依赖:
 
 - [Git](https://git-scm.com)
 - [Node.js](https://nodejs.org/en/download/) (自带 [npm](http://npmjs.com))
 - [XMake](https://xmake.io/)
 
-安装：
+之后，运行：
 
 ``` bash
 npm install -g @lcui/cli
@@ -31,30 +36,24 @@ npm install -g @lcui/cli
 yarn global add @lcui/cli
 ```
 
-然后运行以下命令：
+## 使用
 
-``` bash
-# 创建一个项目
+创建一个 LCUI 应用程序项目：
+
+```bash
 lcui create my-project
-
-# 进入项目目录
-cd my-project
-
-# 构建项目
-xmake
-
-# 运行项目
-xmake run
 ```
 
-如果你已经准备好开发 LCUI 应用程序，可以试试以下命令：
+编译 src 目录内的所有文件：
 
-``` bash
-# 创建一个组件
-lcui generate widget MyWidget
+```bash
+lcui compile src
+```
 
-# 创建一个视图
-lcui generate view MyView
+编译单个文件：
+
+```bash
+lcui compile src/pages/home/index.tsx
 ```
 
 ## 许可
