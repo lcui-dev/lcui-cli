@@ -34,8 +34,11 @@ interface CompilerOptions {
   rootContext: string;
 
   appDirPath: string;
+
   buildDirPath: string;
 
+  modulesDirPath: string;
+  modulesOutputDirPath: string;
 }
 
 interface CompilerContext extends CompilerOptions {
