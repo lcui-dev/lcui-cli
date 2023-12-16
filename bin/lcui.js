@@ -30,7 +30,7 @@ program
 
 program
   .command("compile")
-  .description("Compile resource files into C soruce files")
+  .description("Compile resource files into C source files")
   .argument("<filePath>", "File or directory")
   .option("--verbose", "More detailed log output")
   .action(wrapAction(compile));
