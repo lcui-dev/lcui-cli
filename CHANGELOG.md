@@ -1,3 +1,53 @@
+# [1.0.0-beta.0](https://github.com/lc-ui/lcui-cli/compare/v0.4.0...v1.0.0-beta.0) (2023-12-16)
+
+
+### Bug Fixes
+
+* typo ([6a72178](https://github.com/lc-ui/lcui-cli/commit/6a72178f68ef27c688e27442e6a25d8f21a93421))
+* **compile:** convert text to a UTF-8 array to solve the encoding problem of C source files ([914860c](https://github.com/lc-ui/lcui-cli/commit/914860c1d733878ad4a69faaaef70e1100022f99))
+* **compile:** incorrect file output path ([b5e8926](https://github.com/lc-ui/lcui-cli/commit/b5e892616dc6bdae338db9427d9b7e33d1ec40ea))
+* **compile:** incorrect resource output path ([9cfc622](https://github.com/lc-ui/lcui-cli/commit/9cfc62290a838efe3ca4459399edf180f73ce484))
+* **compile:** module should be generated after dependencies ([d71bc50](https://github.com/lc-ui/lcui-cli/commit/d71bc50b714a9ed6b6a6364d43002a8dee21eff9))
+* **compiler:** create folder before emitting files ([7cb8071](https://github.com/lc-ui/lcui-cli/commit/7cb80711e064fda66ee491ec6e882a13992c0e4a))
+* **compiler:** incorrect text definition code ([6c7ee53](https://github.com/lc-ui/lcui-cli/commit/6c7ee539b47668f7bcb2686a8c79cd2901f87b27))
+* **compiler:** module resolve and compile errors ([8f47fdb](https://github.com/lc-ui/lcui-cli/commit/8f47fdb6a1860f01f81aa88e792338c73251238c))
+
+
+### Features
+
+* **compile:**  auto create widget prototype ([423891a](https://github.com/lc-ui/lcui-cli/commit/423891ac30cbffbdf6a0bb86e75fde4d0f62b279))
+* **compile:** add `style` attribute support ([29caa7b](https://github.com/lc-ui/lcui-cli/commit/29caa7b40f410d83e894421644a42ff401ba0c5b))
+* **compile:** add json-loader ([766d5c4](https://github.com/lc-ui/lcui-cli/commit/766d5c4fccd613d0946bb5188776052411e5378c))
+* **compile:** add loaders ([9ba82c7](https://github.com/lc-ui/lcui-cli/commit/9ba82c76cbc841fe4e0ca63c45fe199100b10edb))
+* **compile:** add logger ([48dbbf3](https://github.com/lc-ui/lcui-cli/commit/48dbbf3c8347f4241a5af1af8445032fa582fcdf))
+* **compile:** add react-tsx compiler ([f71cba9](https://github.com/lc-ui/lcui-cli/commit/f71cba96b2643989bfa462d0299573d80971dd80))
+* **compile:** add support for pre rendering React components ([7e71b3a](https://github.com/lc-ui/lcui-cli/commit/7e71b3a410302d39f9434c5c20b574a3f105f2f7))
+* **compile:** add ui-loader ([6db68cd](https://github.com/lc-ui/lcui-cli/commit/6db68cd1b386b3523b549688ed36823fd648fef6))
+* **compile:** convert resource file url ([6acfde9](https://github.com/lc-ui/lcui-cli/commit/6acfde96f678b4c9ae4d5f590772635036ea7ba4))
+* **compile:** file loader did not emit file ([bc2044e](https://github.com/lc-ui/lcui-cli/commit/bc2044ed8619e119ae6071502056eb70ad4f2170))
+* **compile:** improving component prototype name selection ([7838bf0](https://github.com/lc-ui/lcui-cli/commit/7838bf0669ecf81654a76085b2f288ad33de75f1))
+* **compile:** merge compilers ([5f2d5e4](https://github.com/lc-ui/lcui-cli/commit/5f2d5e42adc208d388f9dee9ad0f526bc2fb9d53))
+* **compile:** replace the XML parser and JSON data format ([c067504](https://github.com/lc-ui/lcui-cli/commit/c067504e6e47df1c1d84970b0945f39653859523))
+* **compile:** update sass and json compiler ([faf742e](https://github.com/lc-ui/lcui-cli/commit/faf742e51a6630c3bcff1ac6714d8677de66ef0d))
+* **compile:** update ts-loader compiler options ([cd6646d](https://github.com/lc-ui/lcui-cli/commit/cd6646d044094d3c683bdfa06030977e1b6c7d59))
+* **create:** install node modules ([6409a53](https://github.com/lc-ui/lcui-cli/commit/6409a5302ef2165084661653116534b17d829b4e))
+* add resource compiler ([182d08e](https://github.com/lc-ui/lcui-cli/commit/182d08ecf751207534dacccaf288b7624b282938))
+* delete i18n compiler and generator ([cda954e](https://github.com/lc-ui/lcui-cli/commit/cda954ec145485627f1a8429070ca67a4bb04adc))
+* remove generator ([3abf53a](https://github.com/lc-ui/lcui-cli/commit/3abf53aebabe5b6369a58cc58d60fc01982e6f0c))
+* **create:** remove origin remote ([9e4d41a](https://github.com/lc-ui/lcui-cli/commit/9e4d41a021da65449d324d02f77ca65b86429e2c))
+* **create:** update command lines ([8ac47d8](https://github.com/lc-ui/lcui-cli/commit/8ac47d89c777dbfb4b87f60ef68191a9ac932778))
+* remove makefile generators ([7b060ac](https://github.com/lc-ui/lcui-cli/commit/7b060ac18f508339f874b259671ea360d7cc313a))
+* simplify project creation and remove some commands ([995f0b6](https://github.com/lc-ui/lcui-cli/commit/995f0b6b4704e69894dc67ce4a2c8410a2cf4498))
+
+
+### BREAKING CHANGES
+
+* remove generator
+* remove build, run and setup commands
+* The 3. x version of LCUI has an i18n library built-in, so the i18n generator and compiler need to be removed.
+
+
+
 # [0.4.0](https://github.com/lc-ui/lcui-cli/compare/v0.3.1...v0.4.0) (2021-05-10)
 
 
