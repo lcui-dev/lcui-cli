@@ -10,7 +10,7 @@
 LCUI CLI 是一个能帮助你快速开发 LCUI 应用程序的工具，提供：
 
 - 项目脚手架。
-- 类似于 Webpack 的编译器，能靠加载器加载特定类型的文件并将其编译为 C 代码。现有以下加载器：
+- 类似于 Webpack 的编译器，基于多种加载器：
   - ts-loader：加载 JavaScript、TypeScript 文件，支持 JSX 语法。你可以像编写 React 组件一样编写 LCUI 部件。
   - css-loader：加载 CSS 文件，支持 CSS Modules 写法。
   - sass-loader： 加载 Sass/SCSS 文件并将其编译为 CSS。
