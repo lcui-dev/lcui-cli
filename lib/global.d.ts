@@ -17,7 +17,7 @@ interface ModuleMetadata {
   initCode: string;
 }
 
-interface Module extends Record<string, nay> {
+interface Module extends Record<string, any> {
   default: any;
   metadata: ModuleMetadata;
 }
@@ -60,7 +60,7 @@ interface CompilerContext extends CompilerOptions {
   importModule(name: string): Promise<Module>;
 
   /** 输出文件 */
-  emitFile(name: string, content: stirng | Buffer): void;
+  emitFile(name: string, content: string | Buffer): void;
 
   /** 生成模块 */
   generateModule(
