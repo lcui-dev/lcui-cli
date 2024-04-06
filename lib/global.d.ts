@@ -41,6 +41,11 @@ interface CompilerOptions {
   modulesOutputDirPath: string;
 }
 
+interface Hook<T = ((...args: any[]) => Promise<void>)> {
+  tap(name: string, fn: T): void;
+  call: T;
+}
+
 interface CompilerContext extends CompilerOptions {
   /** 资源文件的路径 */
   resourcePath: string;
@@ -72,8 +77,18 @@ interface CompilerContext extends CompilerOptions {
 }
 
 interface LoaderContext extends CompilerContext {
+  data: Record<string, any>;
   /** 获取配置选项 */
   getOptions(): any;
+}
+
+interface CompilerInstance {
+  options: CompilerOptions;
+  logger: import("winston").Logger;
+  hooks: {
+    loadModule: Hook<(file: string, data: Record<string, any>) => void>;
+    done: Hook;
+  };
 }
 
 interface ResourceNode {
