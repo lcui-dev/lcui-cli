@@ -91,6 +91,13 @@ interface CompilerInstance {
   };
 }
 
+interface ComponentConfig {
+  headerFilePath: string;
+  resourceLoaderName: string;
+  assets: Module[];
+  components: string[];
+}
+
 interface ResourceNode {
   name: string;
   text?: string;
