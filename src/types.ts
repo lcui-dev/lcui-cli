@@ -1,4 +1,4 @@
-interface ModuleMetadata {
+export interface ModuleMetadata {
   type: "javascript" | "asset";
 
   /** 资源文件所在路径 */
@@ -17,12 +17,12 @@ interface ModuleMetadata {
   initCode: string;
 }
 
-interface Module extends Record<string, any> {
+export interface Module extends Record<string, any> {
   default: any;
   metadata: ModuleMetadata;
 }
 
-interface CompilerOptions {
+export interface CompilerOptions {
   verbose?: boolean;
   /**
    * 模块所在的目录
@@ -33,20 +33,19 @@ interface CompilerOptions {
   /** 根目录 */
   rootContext: string;
 
-  appDirPath: string;
-
-  buildDirPath: string;
-
-  modulesDirPath: string;
-  modulesOutputDirPath: string;
+  distDir: string;
+  appDir: string;
+  buildDir: string;
+  modulesDir: string;
+  modulesOutputDir: string;
 }
 
-interface Hook<T = ((...args: any[]) => Promise<void>)> {
+export interface Hook<T = (...args: any[]) => any> {
   tap(name: string, fn: T): void;
   call: T;
 }
 
-interface CompilerContext extends CompilerOptions {
+export interface CompilerContext extends CompilerOptions {
   /** 资源文件的路径 */
   resourcePath: string;
 
@@ -73,16 +72,16 @@ interface CompilerContext extends CompilerOptions {
     generator: () => Promise<string | Buffer>
   ): Promise<void>;
 
-  logger: import("winston").Logger
+  logger: import("winston").Logger;
 }
 
-interface LoaderContext extends CompilerContext {
+export interface LoaderContext extends CompilerContext {
   data: Record<string, any>;
   /** 获取配置选项 */
   getOptions(): any;
 }
 
-interface CompilerInstance {
+export interface CompilerInstance {
   options: CompilerOptions;
   logger: import("winston").Logger;
   hooks: {
@@ -91,14 +90,14 @@ interface CompilerInstance {
   };
 }
 
-interface ComponentConfig {
+export interface ComponentConfig {
   headerFilePath: string;
   resourceLoaderName: string;
   assets: Module[];
   components: string[];
 }
 
-interface ResourceNode {
+export interface ResourceNode {
   name: string;
   text?: string;
   attributes?: Record<string, any>;
@@ -107,7 +106,7 @@ interface ResourceNode {
 
 type LoaderOptions = Record<string, any>;
 
-interface UILoaderOptions extends LoaderOptions {
+export interface UILoaderOptions extends LoaderOptions {
   indent?: number;
 }
 
@@ -125,12 +124,12 @@ type LoaderRule = {
 
 type ModuleRuleUseConfig = string | (LoaderRule | string)[];
 
-interface ModuleRule {
+export interface ModuleRule {
   test: RegExp | ((path: string) => boolean);
   use: ModuleRuleUseConfig;
 }
 
-interface ModuleCacheItem {
+export interface ModuleCacheItem {
   state: "pending" | "loading" | "loaded";
   outputPath: string;
   exports: Promise<Module>;
@@ -138,4 +137,4 @@ interface ModuleCacheItem {
   reject: (err: Error) => void;
 }
 
-type ModuleCacheMap = Record<string, ModuleCacheItem>;
+export type ModuleCacheMap = Record<string, ModuleCacheItem>;

@@ -63,3 +63,4 @@ typings/
 test/fixtures/*/project
 *.zip
 .vscode
+lib/app-plugin

@@ -7,6 +7,7 @@
   "bin": {
     "lcui": "bin/lcui.js"
   },
+  "types": "./lib/types.d.ts",
   "scripts": {
     "test": "nyc mocha",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
@@ -37,7 +38,7 @@
     "react-dom": "^18.2.0",
     "sass": "^1.64.2",
     "simple-git": "^3.3.0",
-    "typescript": "^5.1.6",
+    "typescript": "^5.4.5",
     "winston": "^3.10.0",
     "xml-js": "^1.6.11",
     "yaml": "^2.3.1"
@@ -45,6 +46,8 @@
   "devDependencies": {
     "@commitlint/cli": "^12.1.1",
     "@commitlint/config-conventional": "^12.1.1",
+    "@types/fs-extra": "^11.0.4",
+    "@types/react": "^18.2.64",
     "codecov": "^3.8.2",
     "eslint": "^8.50.0",
     "husky": "^6.0.0",
