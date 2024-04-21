@@ -42,7 +42,7 @@ export class AppComponentsCompiler {
             this.options.appDir,
             path.join(this.options.rootContext, c.headerFilePath)
           )}"`
-      ),
+      ).join('\n'),
       initCode: [
         componentList
           .filter((c) => c.resourceLoaderName)

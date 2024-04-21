@@ -10,9 +10,9 @@ int main(int argc, char *argv[])
 {
         lcui_app_init();
 
-        // Create a router and route to the root path "/", This means that
-        // your app will present the user interface in app/page.tsx
-        router_t *router = create_app_router();
+        // Get app router and route to the root path "/", This means that
+        // your app will present the user interface in app/page.ts
+        router_t *router = router_get_by_name("AppRouter");
         router_location_t *location = router_location_create(NULL, "/");
         router_push(router, location);
 
@@ -52,7 +52,8 @@ export default class AppPlugin {
       }
       fs.writeFileSync(
         mainHeaderFile,
-        `#include <LCUI.h>
+        `#include <locale.h>
+#include <LCUI.h>
 #include <LCUI/main.h>
 ${router.includeCode}
 ${components.includeCode}
@@ -61,8 +62,12 @@ ${router.globalCode}
 
 static void lcui_app_init(void)
 {
+        setlocale(LC_CTYPE, "");
         lcui_init();
+${router.initCode}
 ${components.initCode}
+        ui_widget_set_attr(ui_root(), "router", "AppRouter");
+        ui_widget_append(ui_root(), ui_create_root_layout());
 }
 
 static int lcui_app_run(void)

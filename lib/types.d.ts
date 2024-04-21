@@ -51,7 +51,7 @@ export interface CompilerContext extends CompilerOptions {
     /** 输出文件 */
     emitFile(name: string, content: string | Buffer): void;
     /** 生成模块 */
-    generateModule(name: string, generator: () => Promise<string | Buffer>): Promise<void>;
+    generateModule(name: string, generator: () => string | Buffer | Promise<string | Buffer>): Promise<void>;
     logger: import("winston").Logger;
 }
 export interface LoaderContext extends CompilerContext {
@@ -83,8 +83,8 @@ type LoaderOptions = Record<string, any>;
 export interface UILoaderOptions extends LoaderOptions {
     indent?: number;
 }
-type LoaderInput = string | Buffer | ResourceNode;
-type Loader = (this: LoaderContext, content: LoaderInput) => LoaderInput | Promise<undefined>;
+export type LoaderInput = string | Buffer | ResourceNode;
+export type Loader = (this: LoaderContext, content: LoaderInput) => LoaderInput | Promise<LoaderInput>;
 type LoaderRule = {
     loader: string | Loader;
     options: LoaderOptions;

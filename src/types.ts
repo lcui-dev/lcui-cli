@@ -69,7 +69,7 @@ export interface CompilerContext extends CompilerOptions {
   /** 生成模块 */
   generateModule(
     name: string,
-    generator: () => Promise<string | Buffer>
+    generator: () => string | Buffer | Promise<string | Buffer>
   ): Promise<void>;
 
   logger: import("winston").Logger;
@@ -110,12 +110,12 @@ export interface UILoaderOptions extends LoaderOptions {
   indent?: number;
 }
 
-type LoaderInput = string | Buffer | ResourceNode;
+export type LoaderInput = string | Buffer | ResourceNode;
 
-type Loader = (
+export type Loader = (
   this: LoaderContext,
   content: LoaderInput
-) => LoaderInput | Promise<undefined>;
+) => LoaderInput | Promise<LoaderInput>;
 
 type LoaderRule = {
   loader: string | Loader;

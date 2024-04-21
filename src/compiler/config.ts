@@ -51,6 +51,18 @@ export default {
         use: ['ts-loader', 'json-loader'],
       },
       {
+        test: /(layout|page)\.(ts|tsx|js|jsx)$/,
+        use: [
+          "ui-loader",
+          {
+            loader: "ts-loader",
+            options: {
+              target: 'AppRouter'
+            }
+          }
+        ],
+      },
+      {
         test: /\.(ts|tsx|js|jsx)$/,
         use: ["ui-loader", "ts-loader"],
       },

@@ -1,27 +1,20 @@
 import fs from "fs";
 import path from "path";
 import ts from "typescript";
-import { getResourceLoaderName } from "./utils.js";
+import { getResourceLoaderName, parsePageRoute } from "../utils.js";
+import { LoaderContext, LoaderInput, Module } from "../types.js";
 
-/** @type {Loader} */
-export default async function TsLoader(content) {
+export default async function TsLoader(
+  this: LoaderContext,
+  content: LoaderInput
+) {
   const loader = this;
-  /** @type {Promise<Module>[]} */
-  const modules = [];
+  const modules: Promise<Module>[] = [];
   const outputDirPath = path.dirname(loader.resolveModule(loader.resourcePath));
 
-  /**
-   * @param {ts.TransformationContext} context
-   * @returns {ts.Transformer<ts.SourceFile>}
-   */
-  function transformer(context) {
+  function transformer(context: ts.TransformationContext) {
     return (sourceFile) => {
-      /**
-       *
-       * @param {ts.Node} node
-       * @returns {ts.Node}
-       */
-      function visitor(node) {
+      function visitor(node: ts.Node) {
         if (ts.isImportDeclaration(node)) {
           const importPath = node.moduleSpecifier
             .getText(sourceFile)
@@ -32,16 +25,18 @@ export default async function TsLoader(content) {
             modulePath = path.relative(outputDirPath, modulePath);
             modulePath = `.${path.sep}${modulePath}`;
           }
-          return ts.factory.createImportDeclaration(
+          return ts.factory.updateImportDeclaration(
+            node,
             node.modifiers,
             node.importClause,
-            ts.factory.createStringLiteral(modulePath.replace(/\\|\//g, "/"))
+            ts.factory.createStringLiteral(modulePath.replace(/\\|\//g, "/")),
+            node.attributes
           );
         }
         return ts.visitEachChild(node, visitor, context);
       }
 
-      return ts.visitNode(sourceFile, visitor);
+      return ts.visitNode(sourceFile, visitor) as ts.SourceFile;
     };
   }
 
@@ -81,16 +76,26 @@ export default async function TsLoader(content) {
       "index.js"
     )}`
   );
-  // TODO: 处理一个 tsx 文件内有多个组件的情况
-  const result = compile(componentFunc, {});
+  const options = this.getOptions();
   const { dir, name, base } = path.parse(loader.resourcePath);
+  let componentName = componentFunc.displayName || componentFunc.name || name;
+
+  if (options.target === "AppRouter") {
+    componentName = parsePageRoute(loader.appDir, loader.resourcePath).ident;
+  }
+
+  // TODO: 处理一个 tsx 文件内有多个组件的情况
+  const result = compile(
+    componentFunc,
+    {},
+    {
+      target: options.target,
+      name: componentName,
+    }
+  );
   const basePath = path.join(dir, name);
   const sourceFilePath = `${basePath}.c`;
   const headerFilePath = `${basePath}.h`;
-  const componentName =
-    componentFunc.displayName ||
-    componentFunc.name ||
-    path.parse(loader.resourcePath).name;
   const resourceLoaderName = getResourceLoaderName(name, componentName);
 
   if (!fs.existsSync(sourceFilePath)) {
