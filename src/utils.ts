@@ -1,6 +1,6 @@
 import path from "path";
+import fs from "fs-extra";
 import { cosmiconfig } from "cosmiconfig";
-import { LoaderContext } from "./types.js";
 
 export function toIdent(str: string) {
   return str.replace(/[^a-zA-Z0-9]/g, "_");
@@ -22,7 +22,7 @@ export function parsePageRoute(context: string, filePath: string) {
   };
 }
 
-export async function loadConfig(loaderContext: LoaderContext, moduleName: string) {
+export async function loadConfig(context: string, moduleName: string) {
   /** @see https://github.com/webpack-contrib/postcss-loader/blob/b1aecd9b18ede38b0ad4e693a94dadd2b2531429/src/utils.js#L51 */
   const searchPlaces = [
     // Prefer popular format
@@ -48,9 +48,23 @@ export async function loadConfig(loaderContext: LoaderContext, moduleName: strin
     searchStrategy: "global",
     searchPlaces,
   });
-  const result = await explorer.search(path.dirname(loaderContext.resourcePath));
+  const result = await explorer.search(context);
   if (!result || result.isEmpty) {
     return null;
   }
   return result.config;
+}
+
+export function resolveRootDir() {
+  let dir = process.cwd();
+  const configFiles = ["package.json", "lcui.config.js"];
+
+  do {
+    if (configFiles.some((file) => fs.existsSync(path.join(dir, file)))) {
+      return dir;
+    }
+  } while (dir);
+  throw new Error(
+    "Unable to determine the project root directory, please add the package.json file to the project root directory"
+  );
 }

@@ -43,7 +43,10 @@ export default async function CSSLoader(
       })
     );
   }
-  const customConfig = (await loadConfig(loader, "postcss")) as null | {
+  const customConfig = (await loadConfig(
+    path.dirname(loader.resourcePath),
+    "postcss"
+  )) as null | {
     plugins?: postcss.AcceptedPlugin[];
   };
   if (customConfig && Array.isArray(customConfig.plugins)) {
