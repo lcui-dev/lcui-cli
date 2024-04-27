@@ -3,6 +3,7 @@ import path from "path";
 import { AppComponentsCompiler } from "./components.js";
 import { compileAppRouter } from "./router.js";
 import { CompilerInstance } from "../types.js";
+import { runXMake } from "./xmake.js";
 
 const mainFileContent = `#include "main.h"
 
@@ -77,6 +78,7 @@ static int lcui_app_run(void)
 
 `
       );
+      runXMake(compiler);
     });
   }
 }
