@@ -143,6 +143,10 @@ export default async function TsLoader(
             name: "ref",
             text: ref,
           })),
+          ...result.headerFiles.map((file) => ({
+            name: "include",
+            text: file,
+          })),
           {
             name: "code",
             text: result.typesCode,
