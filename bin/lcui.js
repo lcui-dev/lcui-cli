@@ -29,8 +29,8 @@ program
   .action(wrapAction(create));
 
 program
-  .command("compile")
-  .description("Compile resource files into C source files")
+  .command("build")
+  .description("Build the project, or build specified file")
   .argument("[filePath]", "File or directory")
   .option("--verbose", "More detailed log output")
   .action(wrapAction(compile));
