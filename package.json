@@ -1,6 +1,6 @@
 {
   "name": "@lcui/cli",
-  "version": "1.0.0-beta.0",
+  "version": "1.0.0-beta.1",
   "type": "module",
   "description": "Command line interface for rapid LCUI development",
   "main": "index.js",

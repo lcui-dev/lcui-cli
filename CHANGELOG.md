@@ -1,3 +1,27 @@
+# [1.0.0-beta.1](https://github.com/lc-ui/lcui-cli/compare/v1.0.0-beta.0...v1.0.0-beta.1) (2024-05-12)
+
+
+### Bug Fixes
+
+* **ui-loader:** 纠正组件 ident ([865a2e5](https://github.com/lc-ui/lcui-cli/commit/865a2e544ab56fb6f240d1da90e08468890acd30))
+
+
+### Features
+
+* **ui-loader:** 支持声明头文件包含 ([026ec0c](https://github.com/lc-ui/lcui-cli/commit/026ec0c31c81b3f774efae59d34caf808ed836af))
+* 编译完资源文件后执行 xmake ([414604c](https://github.com/lc-ui/lcui-cli/commit/414604c9c0e331c63bebe4c03fcca48d705421df))
+* 从项目目录内加载 postcss 配置 ([10f75c9](https://github.com/lc-ui/lcui-cli/commit/10f75c948b5fa94e9302e6058d3efd02c313a74f))
+* 改进 React 组件的编译 ([a2c7a4e](https://github.com/lc-ui/lcui-cli/commit/a2c7a4e61802c945b4336f38eb2dda016f52e5de))
+* 生成 UI 初始化代码和示例 main() 函数代码 ([0dafd1d](https://github.com/lc-ui/lcui-cli/commit/0dafd1dbcf37e4aa31dd129906d36a487b2200da))
+* 替换 react/jsx-runtime ([d6c1e46](https://github.com/lc-ui/lcui-cli/commit/d6c1e467e43f5db815bb6feaf290f4b374b869ef))
+* 添加 AppRouter 编译器 ([9e8e40f](https://github.com/lc-ui/lcui-cli/commit/9e8e40f178923e8cc2ddf2aeec00baa29f537f57))
+* 添加 hooks 和 UIPlugin，存储所有组件信息 ([d032b51](https://github.com/lc-ui/lcui-cli/commit/d032b51b58ad86252fffeebbcff3a50a643071a5))
+* 为 ts-loader 添加 AppRouter 生成目标 ([37d4fbb](https://github.com/lc-ui/lcui-cli/commit/37d4fbbaa754a543c55e3fd4898e5b17d20f6973))
+* compile 命令的 filePath 参数默认值为 app 目录 ([077d5fb](https://github.com/lc-ui/lcui-cli/commit/077d5fbd9ac8c290f4b710bc2ac6a96f8d7bf364))
+* compile 命令更名为 build ([722ddb9](https://github.com/lc-ui/lcui-cli/commit/722ddb9f53bc01e9e08e823567d93b642231ed2c))
+
+
+
 # [1.0.0-beta.0](https://github.com/lc-ui/lcui-cli/compare/v0.4.0...v1.0.0-beta.0) (2023-12-16)
 
 
