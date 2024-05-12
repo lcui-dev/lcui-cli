@@ -1,3 +1,12 @@
+# [1.0.0-beta.2](https://github.com/lc-ui/lcui-cli/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2024-05-12)
+
+
+### Bug Fixes
+
+* ERR_MODULE_NOT_FOUND ([b940da0](https://github.com/lc-ui/lcui-cli/commit/b940da0bc40a8ffcc014733769975ced803db673))
+
+
+
 # [1.0.0-beta.1](https://github.com/lc-ui/lcui-cli/compare/v1.0.0-beta.0...v1.0.0-beta.1) (2024-05-12)
 
 
