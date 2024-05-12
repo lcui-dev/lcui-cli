@@ -45,13 +45,13 @@ lcui create my-project
 Compile all files in the src directory:
 
 ```bash
-lcui compile src
+lcui build
 ```
 
 Compile a single file:
 
 ```bash
-lcui compile src/pages/home/index.tsx
+lcui build app/page.tsx
 ```
 
 ## License

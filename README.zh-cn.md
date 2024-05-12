@@ -44,16 +44,16 @@ yarn global add @lcui/cli
 lcui create my-project
 ```
 
-编译 src 目录内的所有文件：
+编译 app 目录内的所有文件：
 
 ```bash
-lcui compile src
+lcui build
 ```
 
 编译单个文件：
 
 ```bash
-lcui compile src/pages/home/index.tsx
+lcui build app/page.tsx
 ```
 
 ## 许可
