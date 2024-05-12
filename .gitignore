@@ -64,3 +64,4 @@ test/fixtures/*/project
 *.zip
 .vscode
 lib/app-plugin
+*.d.ts
