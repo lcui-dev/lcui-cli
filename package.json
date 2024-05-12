@@ -7,6 +7,9 @@
   "bin": {
     "lcui": "bin/lcui.js"
   },
+  "files": [
+    "lib"
+  ],
   "types": "./lib/types.d.ts",
   "scripts": {
     "test": "nyc mocha",
