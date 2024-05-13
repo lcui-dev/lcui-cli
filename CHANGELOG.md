@@ -1,3 +1,7 @@
+# [1.0.0](https://github.com/lc-ui/lcui-cli/compare/v1.0.0-beta.2...v1.0.0) (2024-05-13)
+
+
+
 # [1.0.0-beta.2](https://github.com/lc-ui/lcui-cli/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2024-05-12)
 
 
