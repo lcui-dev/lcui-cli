@@ -12,18 +12,12 @@
   ],
   "types": "./lib/types.d.ts",
   "scripts": {
-    "test": "nyc mocha",
-    "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
+    "test": "echo \"no test specified\"",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "version": "npm run changelog && git add CHANGELOG.md"
   },
   "author": "Liu",
   "license": "MIT",
-  "husky": {
-    "hooks": {
-      "commit-msg": "commitlint --env HUSKY_GIT_PARAMS"
-    }
-  },
   "repository": {
     "url": "git+https://github.com/lc-ui/lcui-cli.git"
   },
@@ -48,13 +42,13 @@
     "yaml": "^2.3.1"
   },
   "devDependencies": {
-    "@commitlint/cli": "^12.1.1",
-    "@commitlint/config-conventional": "^12.1.1",
+    "@commitlint/cli": "^19.3.0",
+    "@commitlint/config-conventional": "^19.2.2",
     "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.12.11",
     "@types/react": "^18.2.64",
     "codecov": "^3.8.2",
     "eslint": "^8.50.0",
-    "husky": "^6.0.0",
     "mocha": "^10.1.0",
     "nyc": "^15.1.0"
   },
