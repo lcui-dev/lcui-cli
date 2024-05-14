@@ -1,3 +1,12 @@
+## [1.0.1](https://github.com/lc-ui/lcui-cli/compare/v1.0.0...v1.0.1) (2024-05-14)
+
+
+### Bug Fixes
+
+* 纠正项目构建命令 ([228fba3](https://github.com/lc-ui/lcui-cli/commit/228fba3d8dadfb4674331a33adfd8c5e228aad04))
+
+
+
 # [1.0.0](https://github.com/lc-ui/lcui-cli/compare/v1.0.0-beta.2...v1.0.0) (2024-05-13)
 
 
