@@ -65,3 +65,5 @@ test/fixtures/*/project
 .vscode
 lib/app-plugin
 *.d.ts
+.lcui
+build
