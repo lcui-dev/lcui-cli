@@ -5,26 +5,6 @@ import { compileAppRouter } from "./router.js";
 import { CompilerInstance } from "../types.js";
 import { runXMake } from "./xmake.js";
 
-const mainFileContent = `#include "main.h"
-
-int main(int argc, char *argv[])
-{
-        lcui_app_init();
-
-        // Get app router and route to the root path "/", This means that
-        // your app will present the user interface in app/page.ts
-        router_t *router = router_get_by_name("AppRouter");
-        router_location_t *location = router_location_create(NULL, "/");
-        router_push(router, location);
-
-        // Write code here to initialize your application,
-        // such as loading configuration files, initializing functional modules
-        // ...
-
-        return lcui_app_run();
-}
-`;
-
 export default class AppPlugin {
   name = "AppPlugin";
 
@@ -49,26 +29,45 @@ export default class AppPlugin {
         fs.mkdirpSync(appDir);
       }
       if (!fs.existsSync(mainSourceFile)) {
-        fs.writeFileSync(mainSourceFile, mainFileContent);
+        fs.writeFileSync(
+          mainSourceFile,
+          `#include "main.h"
+
+int main(int argc, char *argv[])
+{
+        lcui_app_init();
+${router.initCode.map((line) => `        ${line}`).join("\n")}
+        // Write code here to initialize your application,
+        // such as loading configuration files, initializing functional modules
+        // ...
+
+        return lcui_app_run();
+}
+`
+        );
       }
       fs.writeFileSync(
         mainHeaderFile,
         `#include <locale.h>
 #include <LCUI.h>
 #include <LCUI/main.h>
-${router.includeCode}
-${components.includeCode}
-
-${router.globalCode}
+${[router.includeCode, components.includeCode, router.globalCode]
+  .filter(Boolean)
+  .join("\n")}
 
 static void lcui_app_init(void)
 {
         setlocale(LC_CTYPE, "");
         lcui_init();
-${router.initCode}
-${components.initCode}
-        ui_widget_set_attr(ui_root(), "router", "AppRouter");
-        ui_widget_append(ui_root(), ui_create_root_layout());
+${[
+  ...router.baseInitCode,
+  ...router.componentsInitCode,
+  ...components.initCode,
+  ...router.initCode,
+]
+  .filter(Boolean)
+  .map((line) => `        ${line}`)
+  .join("\n")}
 }
 
 static int lcui_app_run(void)

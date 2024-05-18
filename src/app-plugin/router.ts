@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "fs-extra";
 import path from "path";
 import { CompilerOptions } from "../types.js";
 import { parsePageRoute } from "../utils.js";
@@ -113,6 +113,7 @@ function compileAppRoute(appRoute: RouteConfig, context: string) {
   appRoute.children.forEach((route) => compileRoute(route, "", "NULL"));
   compileRoute({ page: appRoute.page, children: [] }, "", "NULL");
   return [
+    "",
     "static void lcui_app_router_init(void)",
     "{",
     [
@@ -129,16 +130,41 @@ function compileAppRoute(appRoute: RouteConfig, context: string) {
 }
 
 export function compileAppRouter(options: CompilerOptions) {
+  const result = {
+    includeCode: [],
+    baseInitCode: [],
+    componentsInitCode: [],
+    initCode: [],
+    mainInitCode: [],
+    globalCode: "",
+  };
+  if (!fs.existsSync(options.appDir)) {
+    return result;
+  }
   const route = scanAppRoute(options.appDir);
+  if (route.children.length < 1 && !route.layout && !route.page) {
+    return result;
+  }
   return {
-    includeCode: "#include <ui_router.h>",
+    includeCode: ["#include <ui_router.h>"],
+    baseInitCode: ["lcui_app_router_init();"],
+    componentsInitCode: [
+      "ui_register_router_link();",
+      "ui_register_router_view();",
+    ],
     initCode: [
-      "lcui_app_router_init()",
-      "ui_register_router_link()",
-      "ui_register_router_view()",
-    ]
-      .map((line) => `        ${line};`)
-      .join("\n"),
+      'ui_widget_set_attr(ui_root(), "router", "AppRouter");',
+      "ui_widget_append(ui_root(), ui_create_root_layout());",
+    ],
+    mainInitCode: [
+      "",
+      '// Get app router and route to the root path "/", This means that',
+      "// your app will present the user interface in app/page.ts",
+      'router_t *router = router_get_by_name("AppRouter");',
+      'router_location_t *location = router_location_create(NULL, "/");',
+      "router_push(router, location);",
+      "",
+    ],
     globalCode: compileAppRoute(route, options.appDir),
   };
 }

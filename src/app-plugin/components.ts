@@ -42,18 +42,15 @@ export class AppComponentsCompiler {
             this.options.appDir,
             path.join(this.options.rootContext, c.headerFilePath)
           )}"`
-      ).join('\n'),
+      ),
       initCode: [
-        componentList
+        ...componentList
           .filter((c) => c.resourceLoaderName)
-          .map((c) => `        ${c.resourceLoaderName}();`)
-          .join("\n"),
-        componentList
-          .map((c) =>
-            c.components.map((name) => `        ui_register_${name}();`)
-          )
-          .join("\n"),
-      ].join("\n"),
+          .map((c) => `${c.resourceLoaderName}();`),
+        ...componentList.map((c) =>
+          c.components.map((name) => `ui_register_${name}();`)
+        ),
+      ],
     };
   }
 }
