@@ -63,7 +63,8 @@ export function resolveRootDir() {
     if (configFiles.some((file) => fs.existsSync(path.join(dir, file)))) {
       return dir;
     }
-  } while (dir);
+    dir = path.dirname(dir);
+  } while (path.parse(dir).base);
   throw new Error(
     "Unable to determine the project root directory, please add the package.json file to the project root directory"
   );
