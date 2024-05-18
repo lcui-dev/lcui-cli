@@ -1,8 +1,13 @@
 import fs from "fs";
 import path from "path";
 import ts from "typescript";
+import React from "react";
 import { getResourceLoaderName, parsePageRoute } from "../utils.js";
 import { LoaderContext, LoaderInput, Module } from "../types.js";
+
+function isComponentFunc(name: string) {
+  return name.charAt(0) >= "A" && name.charAt(0) <= "Z";
+}
 
 export default async function TsLoader(
   this: LoaderContext,
@@ -10,6 +15,7 @@ export default async function TsLoader(
 ) {
   const loader = this;
   const modules: Promise<Module>[] = [];
+  const localFuncNames: string[] = [];
   const outputDirPath = path.dirname(loader.resolveModule(loader.resourcePath));
 
   function transformer(context: ts.TransformationContext) {
@@ -33,6 +39,20 @@ export default async function TsLoader(
             node.attributes
           );
         }
+        if (
+          ts.isFunctionDeclaration(node) &&
+          node.name &&
+          isComponentFunc(node.name.getText())
+        ) {
+          localFuncNames.push(node.name.getText());
+        } else if (
+          ts.isVariableDeclaration(node) &&
+          node.initializer &&
+          ts.isArrowFunction(node.initializer) &&
+          isComponentFunc(node.name.getText())
+        ) {
+          localFuncNames.push(node.name.getText());
+        }
         return ts.visitEachChild(node, visitor, context);
       }
 
@@ -54,16 +74,18 @@ export default async function TsLoader(
   const assets = (await Promise.all(modules)).filter(
     (m) => m?.metadata?.type === "asset"
   );
-  await loader.generateModule(loader.resourcePath, () =>
-    tsResult.outputText.replace(
-      "react/jsx-runtime",
-      "@lcui/react/lib/jsx-runtime.js"
-    )
+  await loader.generateModule(
+    loader.resourcePath,
+    () =>
+      tsResult.outputText.replace(
+        "react/jsx-runtime",
+        "@lcui/react/lib/jsx-runtime.js"
+      ) + `\n\nexport const componentList = [${localFuncNames.join(", ")}];\n`
   );
-  const { default: componentFunc } = await loader.importModule(
-    loader.resourcePath
-  );
-  if (!(componentFunc instanceof Function)) {
+  const { default: defaultComponentFunc, componentList } =
+    await loader.importModule(loader.resourcePath);
+
+  if (componentList.length < 1) {
     return;
   }
 
@@ -78,36 +100,57 @@ export default async function TsLoader(
   );
   const options = this.getOptions();
   const { dir, name, base } = path.parse(loader.resourcePath);
-  let componentName = componentFunc.displayName || componentFunc.name || name;
+  let defaultComponentName =
+    defaultComponentFunc?.displayName || defaultComponentFunc?.name || name;
 
   if (options.target === "AppRouter") {
-    componentName = parsePageRoute(loader.appDir, loader.resourcePath).ident;
+    defaultComponentName = parsePageRoute(
+      loader.appDir,
+      loader.resourcePath
+    ).ident;
   }
 
-  // TODO: 处理一个 tsx 文件内有多个组件的情况
-  const result = compile(
-    componentFunc,
-    {},
-    {
-      target: options.target,
-      name: componentName,
-    }
+  const result = (componentList as React.FC[]).map(
+    (component, i) =>
+      compile(
+        component,
+        {},
+        {
+          target:
+            defaultComponentFunc === component ? options.target : undefined,
+          name:
+            component.displayName || component.name || `UnnamedComponent${i}`,
+        }
+      ) as {
+        name: string;
+        node: any;
+        refs: string[];
+        headerFiles: string[];
+        typesCode: string;
+        reactCode: string;
+        sourceCode: string;
+        declarationCode: string;
+      }
   );
   const basePath = path.join(dir, name);
   const sourceFilePath = `${basePath}.c`;
   const headerFilePath = `${basePath}.h`;
-  const resourceLoaderName = getResourceLoaderName(name, componentName);
+  const resourceLoaderName = getResourceLoaderName(name, defaultComponentName);
 
   if (!fs.existsSync(sourceFilePath)) {
     loader.emitFile(
       sourceFilePath,
-      `#include "${base}.h"\n#include "${name}.h"\n\n${result.sourceCode}`
+      `#include "${base}.h"\n#include "${name}.h"\n\n${result
+        .map((item) => item.sourceCode)
+        .join("\n\n")}`
     );
   }
   if (!fs.existsSync(headerFilePath)) {
     loader.emitFile(
       headerFilePath,
-      `#include <ui.h>\n\n${result.declarationCode}${
+      `#include <ui.h>\n\n${result
+        .map((item) => item.declarationCode)
+        .join("\n\n")}${
         resourceLoaderName ? `\nvoid ${resourceLoaderName}(void);\n` : ""
       }`
     );
@@ -121,7 +164,7 @@ export default async function TsLoader(
     resourceLoaderName,
     headerFilePath: path.relative(loader.rootContext, headerFilePath),
     assets,
-    components: [componentName],
+    components: result.map((item) => item.name),
   };
   return {
     name: "lcui-app",
@@ -132,38 +175,38 @@ export default async function TsLoader(
           src: asset.metadata.path,
         },
       })),
-      {
+      ...result.map((item) => ({
         name: "schema",
         children: [
           {
             name: "name",
-            text: componentName,
+            text: item.name,
           },
-          ...result.refs.map((ref) => ({
+          ...item.refs.map((ref) => ({
             name: "ref",
             text: ref,
           })),
-          ...result.headerFiles.map((file) => ({
+          ...item.headerFiles.map((file) => ({
             name: "include",
             text: file,
           })),
           {
             name: "code",
-            text: result.typesCode,
+            text: item.typesCode,
             attributes: {
               kind: "types",
             },
           },
           {
             name: "code",
-            text: result.reactCode,
+            text: item.reactCode,
           },
           {
             name: "template",
-            children: [result.node],
+            children: [item.node],
           },
         ],
-      },
+      })),
     ],
   };
 }
