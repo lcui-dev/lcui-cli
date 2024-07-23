@@ -1,7 +1,7 @@
 import fs from "fs-extra";
 import path from "path";
 import { AppComponentsCompiler } from "./components.js";
-import { compileAppRouter } from "./router.js";
+import { AppRouterCompiler } from "./router.js";
 import { CompilerInstance } from "../types.js";
 import { runXMake } from "./xmake.js";
 
@@ -9,10 +9,20 @@ export default class AppPlugin {
   name = "AppPlugin";
 
   apply(compiler: CompilerInstance) {
-    const { appDir } = compiler.options;
-    const mainHeaderFile = path.join(appDir, "main.h");
-    const mainSourceFile = path.join(appDir, "main.c");
-    const componentsCompiler = new AppComponentsCompiler(compiler.options);
+    const { appDir, sourceDir } = compiler.options;
+    const routerCompiler = new AppRouterCompiler(compiler.options);
+    const mainHeaderFile = path.join(
+      routerCompiler.active ? appDir : sourceDir,
+      "main.h"
+    );
+    const mainSourceFile = path.join(
+      routerCompiler.active ? appDir : sourceDir,
+      "main.c"
+    );
+    const componentsCompiler = new AppComponentsCompiler(
+      compiler.options,
+      mainHeaderFile
+    );
 
     componentsCompiler.loadCache();
     compiler.hooks.loadModule.tap(this.name, (file, data) => {
@@ -21,13 +31,10 @@ export default class AppPlugin {
       }
     });
     compiler.hooks.done.tap(this.name, () => {
+      const router = routerCompiler.compile();
       const components = componentsCompiler.compile();
-      const router = compileAppRouter(compiler.options);
 
       componentsCompiler.saveCache();
-      if (!fs.existsSync(appDir)) {
-        fs.mkdirpSync(appDir);
-      }
       if (!fs.existsSync(mainSourceFile)) {
         fs.writeFileSync(
           mainSourceFile,
@@ -51,7 +58,7 @@ ${router.initCode.map((line) => `        ${line}`).join("\n")}
         `#include <locale.h>
 #include <LCUI.h>
 #include <LCUI/main.h>
-${[router.includeCode, components.includeCode, router.globalCode]
+${[...router.includeCode, ...components.includeCode, ...router.globalCode]
   .filter(Boolean)
   .join("\n")}
 

@@ -7,7 +7,7 @@ export class AppComponentsCompiler {
   options: CompilerOptions;
   dataFile: string;
 
-  constructor(options: CompilerOptions) {
+  constructor(options: CompilerOptions, private mainHeaderFile: string) {
     this.components = {};
     this.options = options;
     this.dataFile = path.join(options.buildDir, "components.json");
@@ -39,7 +39,7 @@ export class AppComponentsCompiler {
       includeCode: componentList.map(
         (c) =>
           `#include "${path.relative(
-            this.options.appDir,
+            path.dirname(this.mainHeaderFile),
             path.join(this.options.rootContext, c.headerFilePath)
           )}"`
       ),

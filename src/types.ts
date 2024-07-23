@@ -35,6 +35,7 @@ export interface CompilerOptions {
 
   distDir: string;
   appDir: string;
+  sourceDir: string;
   buildDir: string;
   modulesDir: string;
   modulesOutputDir: string;
