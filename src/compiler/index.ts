@@ -11,6 +11,7 @@ import XMLLoader from "./xml-loader.js";
 import YAMLLoader from "./yaml-loader.js";
 import JSONLoader from "./json-loader.js";
 import { resolveRootDir } from "../utils.js";
+import { CompilerOptions, Loader, LoaderOptions, LoaderRule, ModuleRuleUseConfig } from "../types.js";
 
 /** @type {Record<string, Loader>} */
 const loaderMap = {
@@ -43,12 +44,8 @@ function getDirs() {
   };
 }
 
-/**
- * 确定加载器配置
- * @param {ModuleRuleUseConfig} config
- */
-function resolveLoaders(config) {
-  let loaders;
+function resolveLoaders(config: ModuleRuleUseConfig) {
+  let loaders: (LoaderRule | string)[];
 
   if (typeof config === "string") {
     loaders = [{ loader: config, options: {} }];
@@ -58,8 +55,8 @@ function resolveLoaders(config) {
     loaders = [config];
   }
   return loaders.map((item) => {
-    let loader;
-    let options = {};
+    let loader: Loader;
+    let options: LoaderOptions = {};
 
     if (typeof item === "string") {
       loader = loaderMap[item];
@@ -173,12 +170,10 @@ function createLogger(logFile, verbose) {
   });
 }
 
-/**
- * @param {string} file 文件或目录路径
- * @param {CompilerOptions} compilerOptions 编译选项
- */
-export default async function compile(file, compilerOptions) {
-  /** @type {CompilerOptions} */
+export default async function compile(
+  file: string,
+  compilerOptions: CompilerOptions
+) {
   const options = {
     ...getDirs(),
     ...compilerOptions,

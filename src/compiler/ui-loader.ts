@@ -1,5 +1,11 @@
 import path from "path";
 import { getResourceLoaderName, toIdent } from "../utils.js";
+import {
+  LoaderContext,
+  LoaderInput,
+  ResourceNode,
+  UILoaderOptions,
+} from "../types.js";
 
 function toSnakeCase(str) {
   return str.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase();
@@ -20,14 +26,12 @@ function createSchema() {
   };
 }
 
-/**
- * 编译资源结点树为 C 代码
- * @param {ResourceNode} rootNode
- * @param {LoaderContext} context
- * @param {UILoaderOptions} options
- * @returns {string}
- */
-async function compile(rootNode, context, { filePath, indent = 8 }) {
+/** 编译资源结点树为 C 代码 */
+async function compile(
+  rootNode: ResourceNode,
+  context: LoaderContext,
+  { filePath, indent = 8 }: UILoaderOptions
+) {
   let count = 0;
   let globalIdentCount = 0;
   const stateEnum = {
@@ -201,8 +205,8 @@ async function compile(rootNode, context, { filePath, indent = 8 }) {
     });
   }
 
-  function allocWidgetNodeIdent(node) {
-    let ident;
+  function allocWidgetNodeIdent(node: ResourceNode) {
+    let ident = "";
     const attrs = node.attributes || {};
     const widgetType = ["w", "widget"].includes(node.name)
       ? attrs.type
@@ -228,7 +232,7 @@ async function compile(rootNode, context, { filePath, indent = 8 }) {
     );
   }
 
-  function compileWidgetNode(node, ident) {
+  function compileWidgetNode(node: ResourceNode, ident: string) {
     const attrs = node.attributes || {};
 
     Object.keys(attrs).forEach((attrName) => {
@@ -269,19 +273,16 @@ async function compile(rootNode, context, { filePath, indent = 8 }) {
     compileWidgetNodeChildren(node, ident);
   }
 
-  function compileNode(node) {
-    let result;
-
+  function compileNode(node: ResourceNode) {
     switch (node.name) {
       case "ui":
         if (state !== stateEnum.START) {
           throw SyntaxError("<ui> must be at the top level");
         }
         state = stateEnum.PARSE_UI;
-        currentSchema.body = node;
-        result = compileUINode(node);
+        compileUINode(node);
         state = stateEnum.START;
-        return result;
+        return;
       case "lcui-app":
         break;
       case "resource":
@@ -291,13 +292,13 @@ async function compile(rootNode, context, { filePath, indent = 8 }) {
           throw SyntaxError(`<schema> must be at the top level`);
         }
         state = stateEnum.PARSE_SCHEMA;
-        result = compileSchemaNode(node);
+        compileSchemaNode(node);
         state = stateEnum.START;
-        return result;
+        return;
       default:
         throw SyntaxError(`Unknown node: ${node.name}`);
     }
-    return node.children.map(compileNode);
+    node.children.forEach(compileNode);
   }
 
   compileNode(rootNode);
@@ -318,10 +319,11 @@ async function compile(rootNode, context, { filePath, indent = 8 }) {
   ].join("\n");
 }
 
-/** @type {Loader} */
-export default async function UILoader(content) {
-  /** @type {ResourceNode} */
-  let node;
+export default async function UILoader(
+  this: LoaderContext,
+  content: LoaderInput
+) {
+  let node: ResourceNode | undefined;
 
   if (typeof content === "string") {
     node = JSON.parse(content);

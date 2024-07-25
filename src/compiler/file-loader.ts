@@ -1,13 +1,15 @@
 import { createHash } from "crypto";
 import path from "path";
+import { LoaderContext, ModuleMetadata } from "../types.js";
 
 /**
- * @param {LoaderContext} loaderContext
- * @param {string} name
- * @returns {string}
  * @see https://github.com/webpack/loader-utils/blob/master/lib/interpolateName.js
  */
-function interpolateName(loaderContext, name, content) {
+function interpolateName(
+  loaderContext: LoaderContext,
+  name: string | ((p: string) => string),
+  content: string
+) {
   let filename;
 
   if (typeof name === "function") {
@@ -66,17 +68,13 @@ function interpolateName(loaderContext, name, content) {
     .replace(/\[folder\]/gi, () => folder);
 }
 
-/**
- *
- * @param {*} resourcePath
- * @param {*} outputPath
- */
-function generateMetadata(resourcePath, outputPath) {
-  /** @type {ModuleMetadata} */
-  const metadata = {
+function generateMetadata(resourcePath: string, outputPath: string) {
+  const metadata: ModuleMetadata = {
     type: "asset",
     path: resourcePath,
     outputPath: outputPath,
+    headerFiles: [],
+    initCode: "",
   };
 
   if (/\.(ttf|woff|woff2)$/i.test(resourcePath)) {

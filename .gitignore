@@ -67,3 +67,4 @@ lib/app-plugin
 *.d.ts
 .lcui
 build
+lib

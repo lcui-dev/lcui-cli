@@ -105,7 +105,7 @@ export interface ResourceNode {
   children?: ResourceNode[];
 }
 
-type LoaderOptions = Record<string, any>;
+export type LoaderOptions = Record<string, any>;
 
 export interface UILoaderOptions extends LoaderOptions {
   indent?: number;
@@ -118,12 +118,12 @@ export type Loader = (
   content: LoaderInput
 ) => LoaderInput | Promise<LoaderInput>;
 
-type LoaderRule = {
+export type LoaderRule = {
   loader: string | Loader;
   options: LoaderOptions;
 };
 
-type ModuleRuleUseConfig = string | (LoaderRule | string)[];
+export type ModuleRuleUseConfig = string | LoaderRule | (LoaderRule | string)[];
 
 export interface ModuleRule {
   test: RegExp | ((path: string) => boolean);

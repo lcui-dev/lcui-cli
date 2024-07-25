@@ -1,11 +1,9 @@
-import path from 'path';
-import * as sass from 'sass';
-import fs from 'fs-extra';
+import path from "path";
+import * as sass from "sass";
+import fs from "fs-extra";
+import { LoaderContext } from "../types.js";
 
-/**
- * @type {Loader}
- */
-export default function SassLoader(content) {
+export default function SassLoader(this: LoaderContext, content: string) {
   const { dir, ext } = path.parse(this.resourcePath);
   const result = sass.compileString(`${content}`, {
     importer: {

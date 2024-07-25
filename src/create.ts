@@ -1,7 +1,7 @@
 import fs from "fs-extra";
 import path from "path";
 import chalk from "chalk";
-import simplegit from "simple-git";
+import { simpleGit } from "simple-git";
 import { osLocaleSync } from "os-locale";
 import { execSync } from "child_process";
 
@@ -40,7 +40,11 @@ const locales = {
 };
 
 class Creator {
-  constructor({ name, locale } = {}) {
+  name: string;
+  dir: string;
+  env: typeof locales.cn;
+
+  constructor({ name, locale }: { name: string; locale: string }) {
     this.name = name;
     this.dir = path.resolve(name);
     this.env = locale.startsWith("zh") ? locales.cn : locales.en;
@@ -53,18 +57,18 @@ class Creator {
       throw new Error(env.message.projectExists);
     }
     console.log(msg.downloading(env.templateRepo));
-    await simplegit().clone(env.templateRepo, this.dir, {
+    await simpleGit().clone(env.templateRepo, this.dir, {
       "--depth": 1,
       "--branch": "develop",
     });
     console.log(msg.initGitRepo);
-    const git = simplegit(this.dir);
+    const git = simpleGit(this.dir);
     await git
-      .branch({ "-m": true }, "old")
-      .checkout({ "--orphan": true }, "master")
-      .branch({ "-D": true }, "old")
+      .branch(["-m", "old"])
+      .checkout(["--orphan", "master"])
+      .branch(["-D", "old"])
       .removeRemote("origin")
-      .submoduleUpdate({ "--init": true, "--recursive": true });
+      .submoduleUpdate(["--init", "--recursive"]);
 
     try {
       await git.add(".").commit(msg.initialCommit(env.templateRepo));
