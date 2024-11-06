@@ -64,7 +64,6 @@ ${[...router.includeCode, ...components.includeCode, ...router.globalCode]
 
 static void lcui_app_init(void)
 {
-        setlocale(LC_CTYPE, "");
         lcui_init();
 ${[
   ...router.baseInitCode,
