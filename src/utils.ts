@@ -1,6 +1,7 @@
 import path from "path";
 import fs from "fs-extra";
 import { cosmiconfig } from "cosmiconfig";
+import { snakeCase } from "change-case-all";
 
 export function toIdent(str: string) {
   return str.replace(/[^a-zA-Z0-9]/g, "_");
@@ -10,7 +11,7 @@ export function getResourceLoaderName(
   fileName: string,
   defaultComponentName?: string
 ) {
-  const ident = toIdent(defaultComponentName || fileName);
+  const ident = snakeCase(defaultComponentName || fileName);
   return `ui_load_${ident}_resources`;
 }
 

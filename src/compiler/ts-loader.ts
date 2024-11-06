@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import ts from "typescript";
 import React from "react";
+import { snakeCase } from "change-case-all";
 import { getResourceLoaderName, parsePageRoute } from "../utils.js";
 import { LoaderContext, LoaderInput, Module } from "../types.js";
 
@@ -118,8 +119,9 @@ export default async function TsLoader(
         {
           target:
             defaultComponentFunc === component ? options.target : undefined,
-          name:
-            component.displayName || component.name || `UnnamedComponent${i}`,
+          name: snakeCase(
+            component.displayName || component.name || `UnnamedComponent${i}`
+          ),
         }
       ) as {
         name: string;
