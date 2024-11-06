@@ -23,7 +23,7 @@ const locales = {
   },
   en: {
     libRepo: "https://gitee.com/lc-soft/LCUI.git",
-    templateRepo: "https://gitub.com/lcui-dev/lcui-quick-start.git",
+    templateRepo: "https://github.com/lcui-dev/lcui-quick-start.git",
     message: {
       projectExists: "The project directory already exists",
       downloading: (url) => `Downloading project template: ${url}`,
