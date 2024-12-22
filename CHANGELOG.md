@@ -1,3 +1,23 @@
+# [1.1.0](https://github.com/lc-ui/lcui-cli/compare/v1.0.0...v1.1.0) (2024-12-22)
+
+
+### Bug Fixes
+
+* 兼容 app 目录不存在的情况 ([2d7c1f9](https://github.com/lc-ui/lcui-cli/commit/2d7c1f998483c07be2bab6983ad29355beddff94))
+* 将组件名称转换为 snake 风格以解决名称不一致 ([2c5663f](https://github.com/lc-ui/lcui-cli/commit/2c5663ff85880fd224cbe804ee1d8b99b1e7e7fb))
+* 纠正项目构建命令 ([0f78e47](https://github.com/lc-ui/lcui-cli/commit/0f78e4727de764dfe6c266bd0fbd99847d299aaf))
+* 确定根目录时进入死循环 ([25d1e29](https://github.com/lc-ui/lcui-cli/commit/25d1e298fa2fa10d9da78f7d5b89214177cf8da9))
+* 删除多余的 setlocale() 调用 ([01ee1bd](https://github.com/lc-ui/lcui-cli/commit/01ee1bd6301464119a69bb019f7d2af41844910b))
+* gitub -> github ([#31](https://github.com/lc-ui/lcui-cli/issues/31)) ([2a2d4bf](https://github.com/lc-ui/lcui-cli/commit/2a2d4bfcd927b94d1059c0a98c392228d0826573))
+
+
+### Features
+
+* 将 AppRouter 的编译功能改为可选 ([876423d](https://github.com/lc-ui/lcui-cli/commit/876423d77050dbbd12ca8270e48208e0cad99dec))
+* 支持编译同一文件中的多个组件 ([3ed9548](https://github.com/lc-ui/lcui-cli/commit/3ed9548ec86788c138b32707331a21baf881aab3))
+
+
+
 ## [1.0.1](https://github.com/lc-ui/lcui-cli/compare/v1.0.0...v1.0.1) (2024-05-14)
 
 
