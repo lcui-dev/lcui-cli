@@ -1,3 +1,17 @@
+# [1.2.0](https://github.com/lc-ui/lcui-cli/compare/v1.1.0...v1.2.0) (2025-01-07)
+
+
+### Bug Fixes
+
+* **compiler:** 纠正 App 路由中的页面组件名称 ([432c513](https://github.com/lc-ui/lcui-cli/commit/432c513086911d19b15446705093c589f205f52c))
+
+
+### Features
+
+* 迁移至新版 LCUI ([8f3e2cb](https://github.com/lc-ui/lcui-cli/commit/8f3e2cbb0330a2dc0d8025c97a67ea605ce93bbb))
+
+
+
 # [1.1.0](https://github.com/lc-ui/lcui-cli/compare/v1.0.0...v1.1.0) (2024-12-22)
 
 
