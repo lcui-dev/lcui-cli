@@ -1,3 +1,12 @@
+# [0.5.0](https://gitee.com/lcui-dev/react/compare/v0.4.0...v0.5.0) (2025-01-07)
+
+
+### Features
+
+* 更新头文件名称 ui__widgets.h -> LCUI/widgets.h ([78fac30](https://gitee.com/lcui-dev/react/commits/78fac308d625babff87c2f1ff892b33ed78f1b84))
+
+
+
 # [0.4.0](https://gitee.com/lcui-dev/react/compare/v0.3.0...v0.4.0) (2024-12-22)
 
 
