@@ -71,7 +71,7 @@ export default function useRef() {
 
   ctx.refs.push(name);
   ctx.headerFiles.add('<stdlib.h>');
-  ctx.headerFiles.add('<ui_widgets.h>');
+  ctx.headerFiles.add('<LCUI/widgets.h>');
   return factory.createObjectBinding(
     {
       name: cName,
