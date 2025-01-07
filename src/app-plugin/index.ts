@@ -58,9 +58,9 @@ ${router.initCode.map((line) => `        ${line}`).join("\n")}
         `#include <locale.h>
 #include <LCUI.h>
 #include <LCUI/main.h>
-${[...router.includeCode, ...components.includeCode, ...router.globalCode]
-  .filter(Boolean)
-  .join("\n")}
+${[...router.includeCode, ...components.includeCode, ...router.globalCode].join(
+  "\n"
+)}
 
 static void lcui_app_init(void)
 {
@@ -80,7 +80,6 @@ static int lcui_app_run(void)
 {
         return lcui_run();
 }
-
 `
       );
       runXMake(compiler);

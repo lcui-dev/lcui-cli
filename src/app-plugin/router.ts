@@ -125,7 +125,6 @@ function compileAppRoute(appRoute: RouteConfig, context: string) {
       .map((line) => (!line ? line : `        ${line};`))
       .join("\n"),
     "}",
-    "",
   ];
 }
 
@@ -150,19 +149,16 @@ export class AppRouterCompiler {
       componentsInitCode: [],
       initCode: [],
       mainInitCode: [],
-      globalCode: "",
+      globalCode: [],
     };
 
     if (!this.active) {
       return result;
     }
     return {
-      includeCode: ["#include <ui_router.h>"],
+      includeCode: ["#include <router.h>"],
       baseInitCode: ["lcui_app_router_init();"],
-      componentsInitCode: [
-        "ui_register_router_link();",
-        "ui_register_router_view();",
-      ],
+      componentsInitCode: [],
       initCode: [
         'ui_widget_set_attr(ui_root(), "router", "AppRouter");',
         "ui_widget_append(ui_root(), ui_create_root_layout());",
