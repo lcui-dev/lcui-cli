@@ -112,16 +112,14 @@ export default async function TsLoader(
   }
 
   const result = (componentList as React.FC[]).map(
-    (component, i) =>
+    (component) =>
       compile(
         component,
         {},
         {
           target:
             defaultComponentFunc === component ? options.target : undefined,
-          name: snakeCase(
-            component.displayName || component.name || `UnnamedComponent${i}`
-          ),
+          name: snakeCase(defaultComponentName),
         }
       ) as {
         name: string;
