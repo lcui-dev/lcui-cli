@@ -14,7 +14,7 @@
   "scripts": {
     "test": "echo \"no test specified\"",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "version": "npm run changelog && git add CHANGELOG.md"
+    "version": "yarn tsc && yarn changelog && git add CHANGELOG.md"
   },
   "author": "Liu",
   "license": "MIT",
