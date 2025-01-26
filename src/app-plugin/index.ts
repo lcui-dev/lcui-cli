@@ -42,13 +42,13 @@ export default class AppPlugin {
 
 int main(int argc, char *argv[])
 {
-        lcui_app_init();
+        app_init();
 ${router.initCode.map((line) => `        ${line}`).join("\n")}
         // Write code here to initialize your application,
         // such as loading configuration files, initializing functional modules
         // ...
 
-        return lcui_app_run();
+        return app_run();
 }
 `
         );
@@ -62,7 +62,7 @@ ${[...router.includeCode, ...components.includeCode, ...router.globalCode].join(
   "\n"
 )}
 
-static void lcui_app_init(void)
+static void app_init(void)
 {
         lcui_init();
 ${[
@@ -76,7 +76,7 @@ ${[
   .join("\n")}
 }
 
-static int lcui_app_run(void)
+static int app_run(void)
 {
         return lcui_run();
 }

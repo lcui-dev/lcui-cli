@@ -114,7 +114,7 @@ function compileAppRoute(appRoute: RouteConfig, context: string) {
   compileRoute({ page: appRoute.page, children: [] }, "", "NULL");
   return [
     "",
-    "static void lcui_app_router_init(void)",
+    "static void app_router_init(void)",
     "{",
     [
       `router_config_t *config`,
@@ -157,7 +157,7 @@ export class AppRouterCompiler {
     }
     return {
       includeCode: ["#include <router.h>"],
-      baseInitCode: ["lcui_app_router_init();"],
+      baseInitCode: ["app_router_init();"],
       componentsInitCode: [],
       initCode: [
         'ui_widget_set_attr(ui_root(), "router", "AppRouter");',
