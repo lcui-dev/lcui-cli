@@ -1,3 +1,12 @@
+## [1.2.2](https://github.com/lc-ui/lcui-cli/compare/v1.2.1...v1.2.2) (2025-01-26)
+
+
+### Bug Fixes
+
+* 调整发版命令解决文件缺失问题 ([728a49f](https://github.com/lc-ui/lcui-cli/commit/728a49f881d8c2349c58f21d9fba4e0264783940))
+
+
+
 ## [1.2.1](https://github.com/lc-ui/lcui-cli/compare/v1.2.0...v1.2.1) (2025-01-26)
 
 
