@@ -1,3 +1,12 @@
+## [1.2.1](https://github.com/lc-ui/lcui-cli/compare/v1.2.0...v1.2.1) (2025-01-26)
+
+
+### Bug Fixes
+
+* 解决命名冲突 ([affb31f](https://github.com/lc-ui/lcui-cli/commit/affb31fe2e3448be6e5045020a20c029c240d8e2))
+
+
+
 # [1.2.0](https://github.com/lc-ui/lcui-cli/compare/v1.1.0...v1.2.0) (2025-01-07)
 
 
