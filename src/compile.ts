@@ -11,7 +11,7 @@ import {
 } from "./binding.js";
 import fmt from "./fmt.js";
 import { JSXObjectBinding } from "./jsx-runtime.js";
-import { RouterView } from "./widgets.js";
+import { RouterView, Widget } from "./widgets.js";
 
 type ComponentFunction<T = {}> = {
   displayName?: string;
@@ -41,7 +41,7 @@ type Node = ReturnType<typeof createNode>;
 function allocRef(ctx: ComponentContext, node: Node, prefix = "ref_") {
   if (node.isRoot) {
     return {
-      cName: 'w',
+      cName: "w",
     };
   }
   const refName = node.attributes.ref || `${prefix}${ctx.refs.length}`;
@@ -49,7 +49,7 @@ function allocRef(ctx: ComponentContext, node: Node, prefix = "ref_") {
   node.attributes.ref = refName;
   return {
     name: refName,
-    cName: `_that->refs.${refName}`
+    cName: `_that->refs.${refName}`,
   };
 }
 
@@ -116,9 +116,7 @@ function transformNodeChildren(node: Node, rawChildren: ReactNode[]) {
     const str = fmt(...children);
     const ref = allocRef(ctx, node, "text_ref");
 
-    ctx.body.push(
-      `ui_widget_set_text(${ref.cName}, ${str.__meta__.name})`
-    );
+    ctx.body.push(`ui_widget_set_text(${ref.cName}, ${str.__meta__.name})`);
     return;
   }
 
@@ -134,9 +132,7 @@ function transformNodeChildren(node: Node, rawChildren: ReactNode[]) {
       const childNode = createNode("text");
       const ref = allocRef(ctx, childNode);
 
-      ctx.body.push(
-        `ui_widget_set_text(${ref.cName}, ${str.__meta__.name})`
-      );
+      ctx.body.push(`ui_widget_set_text(${ref.cName}, ${str.__meta__.name})`);
       return childNode;
     }
     return transformReactNode(child);
@@ -300,7 +296,7 @@ export default function compile<T = {}>(
 
   setComponentContext(ctx);
 
-  let el;
+  let el: ReactElement;
   switch (options?.target) {
     case "AppRouter":
       el = componentFunc({
@@ -312,7 +308,7 @@ export default function compile<T = {}>(
       el = componentFunc(props);
       break;
   }
-
+  const hasBaseType = el.type !== "div" && el.type !== Widget;
   return {
     name: options.name || ctx.name,
     node: transformReactNode(el, true),
@@ -334,7 +330,9 @@ void ${ctx.name}_update(ui_widget_t *w);
 
 static void ${ctx.name}_init(ui_widget_t *w)
 {
-        ui_widget_add_data(w, ${ctx.name}_proto, sizeof(${ctx.name}_t));
+        ui_widget_add_data(w, ${ctx.name}_proto, sizeof(${ctx.name}_t));${
+      hasBaseType ? `${ctx.name}_proto->proto->init(w);` : ""
+    }
         ${ctx.name}_react_init(w);
         // Write the initialization code for your component here
         // such as state initialization, event binding, etc
