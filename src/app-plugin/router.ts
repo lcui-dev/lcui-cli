@@ -88,7 +88,7 @@ function compileAppRoute(appRoute: RouteConfig, context: string) {
         `${route.ident} = router_add_route_record(router, config, ${parentIdent})`,
         "router_config_destroy(config)"
       );
-      children.forEach((child) => compileRoute(child, route.path, route.ident));
+      children.forEach((child) => compileRoute(child, `${route.path}/`, route.ident));
     } else {
       lines.push(
         `router_add_route_record(router, config, ${parentIdent})`,
