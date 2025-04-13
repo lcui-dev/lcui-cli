@@ -26,6 +26,10 @@ export class AppComponentsCompiler {
     fs.writeJSONSync(this.dataFile, this.components, { spaces: 2 });
   }
 
+  clearCache() {
+    fs.removeSync(this.dataFile);
+  }
+
   merge(components: Record<string, ComponentConfig>) {
     this.components = { ...this.components, ...components };
   }

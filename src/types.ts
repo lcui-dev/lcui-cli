@@ -24,6 +24,7 @@ export interface Module extends Record<string, any> {
 
 export interface CompilerOptions {
   verbose?: boolean;
+  clean?: boolean;
   /**
    * 模块所在的目录
    * 可以用作解析其他模块成员的上下文
@@ -53,7 +54,7 @@ export interface CompilerContext extends CompilerOptions {
   /** 资源文件的输出路径 */
   resourceOutputPath: string;
 
-  emitError(err: Error): void;
+  emitError(err: string | Error): void;
 
   /** 确定资源文件的输出路径 */
   resolveOutput(name: string): string;
@@ -111,12 +112,17 @@ export interface UILoaderOptions extends LoaderOptions {
   indent?: number;
 }
 
-export type LoaderInput = string | Buffer | ResourceNode;
+export type LoaderInput = string | Buffer | ResourceNode | object;
 
 export type Loader = (
   this: LoaderContext,
   content: LoaderInput
 ) => LoaderInput | Promise<LoaderInput>;
+
+export type ResolvedLoaderRule = {
+  loader: Loader;
+  options: LoaderOptions;
+}
 
 export type LoaderRule = {
   loader: string | Loader;

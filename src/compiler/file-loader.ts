@@ -8,7 +8,7 @@ import { LoaderContext, ModuleMetadata } from "../types.js";
 function interpolateName(
   loaderContext: LoaderContext,
   name: string | ((p: string) => string),
-  content: string
+  content: string | Buffer
 ) {
   let filename;
 
@@ -86,8 +86,7 @@ function generateMetadata(resourcePath: string, outputPath: string) {
   return metadata;
 }
 
-/** @type {Loader} */
-export default async function FileLoader(content) {
+export default async function FileLoader(content: string | Buffer) {
   await this.generateModule(this.resourcePath, () => {
     const { outputPath, name } = this.getOptions();
     const filePath = path.join(

@@ -24,8 +24,10 @@ export default class AppPlugin {
       mainHeaderFile
     );
 
-    componentsCompiler.loadCache();
-    compiler.hooks.loadModule.tap(this.name, (file, data) => {
+    if (!compiler.options.clean) {
+      componentsCompiler.loadCache();
+    }
+    compiler.hooks.loadModule.tap(this.name, (_file, data) => {
       if (data.components) {
         componentsCompiler.merge(data.components);
       }

@@ -11,10 +11,20 @@ import XMLLoader from "./xml-loader.js";
 import YAMLLoader from "./yaml-loader.js";
 import JSONLoader from "./json-loader.js";
 import { resolveRootDir } from "../utils.js";
-import { CompilerOptions, Loader, LoaderOptions, LoaderRule, ModuleRuleUseConfig } from "../types.js";
+import {
+  CompilerContext,
+  CompilerInstance,
+  CompilerOptions,
+  Loader,
+  LoaderOptions,
+  LoaderRule,
+  ModuleCacheItem,
+  ModuleCacheMap,
+  ModuleRuleUseConfig,
+  ResolvedLoaderRule,
+} from "../types.js";
 
-/** @type {Record<string, Loader>} */
-const loaderMap = {
+const loaderMap: Record<string, Loader> = {
   "file-loader": FileLoader,
   "ui-loader": UILoader,
   "css-loader": CSSLoader,
@@ -174,8 +184,9 @@ export default async function compile(
   file: string,
   compilerOptions: CompilerOptions
 ) {
-  const options = {
+  const options: CompilerOptions = {
     ...getDirs(),
+    clean: !file,
     ...compilerOptions,
   };
   const logFile = path.join(options.buildDir, "compile.log");
@@ -206,8 +217,7 @@ export default async function compile(
     };
   }
 
-  /** @type {CompilerInstance} */
-  const compiler = {
+  const compiler: CompilerInstance = {
     options,
     logger,
     hooks: {
@@ -220,14 +230,9 @@ export default async function compile(
     compilerConfig.plugins.forEach((plugin) => plugin.apply(compiler));
   }
 
-  /** @type {ModuleCacheMap} */
-  const moduleCacheMap = {};
+  const moduleCacheMap: ModuleCacheMap = {};
 
-  /**
-   * @param {string} resourcePath
-   * @param {string | Error} error
-   */
-  function printError(resourcePath, error) {
+  function printError(resourcePath: string, error: string | Error) {
     logger.error(
       `in ${resourcePath}:\n${
         error instanceof Error ? `${error.message}\n${error.stack}` : error
@@ -235,12 +240,10 @@ export default async function compile(
     );
   }
 
-  /**
-   * @param {string} modulePath
-   * @param {LoaderContext} context
-   * @returns {ModuleCacheItem}
-   */
-  function useModuleCache(modulePath, context) {
+  function useModuleCache(
+    modulePath: string,
+    context: CompilerContext
+  ): ModuleCacheItem {
     const outputPath = resolveModuleOutputPath(modulePath, context);
     const outputDirPath = path.dirname(outputPath);
     let cache = moduleCacheMap[outputPath];
@@ -256,6 +259,9 @@ export default async function compile(
     cache = {
       state: "pending",
       outputPath,
+      exports: null,
+      resolve: null,
+      reject: null,
     };
     moduleCacheMap[outputPath] = cache;
     cache.exports = new Promise((resolve, reject) => {
@@ -286,12 +292,10 @@ export default async function compile(
     }
   }
 
-  /**
-   * 加载模块
-   * @param {string} resourcePath
-   * @param {LoaderRule[]} loaders
-   */
-  async function loadModule(resourcePath, loaders) {
+  async function loadModule(
+    resourcePath: string,
+    loaders: ResolvedLoaderRule[]
+  ) {
     const data = {};
     const context = createCompilerContext(resourcePath);
     const content = await loaders.reduceRight(async (inputPromise, config) => {
@@ -324,13 +328,11 @@ export default async function compile(
     };
   }
 
-  /**
-   * 加载模块
-   * @param {string} resourcePath
-   * @param {LoaderRule[]} loaders
-   * @param {CompilerContext} context
-   */
-  async function importModule(resourcePath, loaders, context) {
+  async function importModule(
+    resourcePath: string,
+    loaders: ResolvedLoaderRule[],
+    context: CompilerContext
+  ) {
     const resolvedPath = resolveModuleImportPath(resourcePath, context);
     const cache = useModuleCache(resolvedPath, context);
 
@@ -339,7 +341,16 @@ export default async function compile(
     }
     cache.state = "loading";
     if (loaders.length < 1) {
-      cache.resolve({ default: null, metadata: { type: "javascript" } });
+      cache.resolve({
+        default: null,
+        metadata: {
+          type: "javascript",
+          path: resourcePath,
+          headerFiles: [],
+          initCode: "",
+          outputPath: cache.outputPath,
+        },
+      });
       return cache.exports;
     }
     try {
@@ -367,7 +378,7 @@ export default async function compile(
     return cache.exports;
   }
 
-  function createCompilerContext(resourcePath) {
+  function createCompilerContext(resourcePath: string) {
     let outputPath = resourcePath;
     if (resourcePath.startsWith(options.modulesDir)) {
       outputPath = path.join(
@@ -378,8 +389,7 @@ export default async function compile(
         fs.mkdirpSync(path.dirname(outputPath));
       }
     }
-    /** @type {CompilerContext} */
-    const context = {
+    const context: CompilerContext = {
       ...options,
       logger,
       resourcePath,
@@ -392,7 +402,10 @@ export default async function compile(
           fs.mkdirpSync(outputDir);
         }
         logger.info(`Emitting ${name}`);
-        fs.writeFile(outputPath, content);
+        fs.writeFileSync(
+          outputPath,
+          typeof content === "string" ? content : new Uint8Array(content)
+        );
       },
       emitError(error) {
         printError(resourcePath, error);
@@ -415,7 +428,7 @@ export default async function compile(
     return context;
   }
 
-  function matchLoaders(resourcePath) {
+  function matchLoaders(resourcePath: string): ResolvedLoaderRule[] {
     const matchedRule = compilerConfig.module.rules.find((rule) => {
       if (rule.test instanceof Function) {
         return rule.test(resourcePath);
@@ -428,7 +441,7 @@ export default async function compile(
     return resolveLoaders(matchedRule.use);
   }
 
-  async function compileFile(filePath) {
+  async function compileFile(filePath: string) {
     if (fs.statSync(filePath).isDirectory()) {
       return Promise.all(
         fs
