@@ -72,7 +72,7 @@ function transformNodeStyle(node: Node, style: Record<string, any>) {
     if (isObjectBinding(value)) {
       identify = value.__meta__.name;
     } else if (typeof value === "number" || typeof value == "string") {
-      identify = `"${value}"`;
+      identify = JSON.stringify(value);
     }
     ctx.body.push(
       `ui_widget_set_style_string(${ref.cName}, "${propKey}", ${identify})`
