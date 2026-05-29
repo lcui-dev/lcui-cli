@@ -3,7 +3,7 @@ import path from "path";
 import ts from "typescript";
 import React from "react";
 import { snakeCase } from "change-case-all";
-import { getResourceLoaderName, parsePageRoute } from "../utils.js";
+import { getResourceLoaderName, parsePageRoute, stripCommonDirPrefixes } from "../utils.js";
 import { LoaderContext, LoaderInput, Module } from "../types.js";
 
 function isComponentFunc(name: string) {
@@ -104,12 +104,17 @@ export default async function TsLoader(
   let defaultComponentName =
     defaultComponentFunc?.displayName || defaultComponentFunc?.name || name;
 
-  if (options.target === "AppRouter") {
+  const isInAppDir =
+    loader.appDir &&
+    loader.resourcePath.startsWith(loader.appDir + path.sep);
+  if (options.target === "AppRouter" || isInAppDir) {
     defaultComponentName = parsePageRoute(
       loader.appDir,
       loader.resourcePath
     ).ident;
   }
+
+  const componentName = stripCommonDirPrefixes(snakeCase(defaultComponentName));
 
   const result = (componentList as React.FC[]).map(
     (component) =>
@@ -119,7 +124,7 @@ export default async function TsLoader(
         {
           target:
             defaultComponentFunc === component ? options.target : undefined,
-          name: snakeCase(defaultComponentName),
+          name: componentName,
         }
       ) as {
         name: string;
@@ -135,7 +140,7 @@ export default async function TsLoader(
   const basePath = path.join(dir, name);
   const sourceFilePath = `${basePath}.c`;
   const headerFilePath = `${basePath}.h`;
-  const resourceLoaderName = getResourceLoaderName(name, defaultComponentName);
+  const resourceLoaderName = getResourceLoaderName(name, componentName);
 
   if (!fs.existsSync(sourceFilePath)) {
     loader.emitFile(

@@ -15,6 +15,16 @@ export function getResourceLoaderName(
   return `ui_load_${ident}_resources`;
 }
 
+const COMMON_DIR_PREFIXES = ['app', 'src'];
+
+export function stripCommonDirPrefixes(name: string): string {
+  const parts = name.split('_');
+  while (parts.length > 1 && COMMON_DIR_PREFIXES.includes(parts[0])) {
+    parts.shift();
+  }
+  return parts.join('_');
+}
+
 export function parsePageRoute(context: string, filePath: string) {
   const { dir, name } = path.parse(path.relative(context, filePath));
   // Convert path, e.g. "/[foo]/bar" to "/:foo/bar"
