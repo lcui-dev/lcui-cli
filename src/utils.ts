@@ -4,7 +4,7 @@ import { cosmiconfig } from "cosmiconfig";
 import { snakeCase } from "change-case-all";
 
 export function toIdent(str: string) {
-  return str.replace(/[^a-zA-Z0-9]/g, "_");
+  return str.replace(/[^a-zA-Z0-9]/g, "_").replace(/_{2,}/g, "_");
 }
 
 export function getResourceLoaderName(
@@ -17,8 +17,11 @@ export function getResourceLoaderName(
 
 export function parsePageRoute(context: string, filePath: string) {
   const { dir, name } = path.parse(path.relative(context, filePath));
+  // Convert path, e.g. "/[foo]/bar" to "/:foo/bar"
   return {
-    path: `/${dir.replaceAll(path.win32.sep, '/')}`,
+    path: `/${dir
+      .replaceAll(path.win32.sep, "/")
+      .replace(/\[([^\]]+)\]/g, ":$1")}`,
     ident: toIdent(`${dir || "root"}_${name}`),
   };
 }
