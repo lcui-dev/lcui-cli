@@ -59,14 +59,9 @@ function scanAppRoute(basePath: string) {
 function compileAppRoute(appRoute: RouteConfig, context: string) {
   const identList: string[] = [];
   const lines: string[] = [];
-  const s = (str: any) =>
-    typeof str === "string" ? JSON.stringify(str) : "NULL";
+  const s = (str: any) => (typeof str === "string" ? JSON.stringify(str) : "NULL");
 
-  function compileRoute(
-    config: RouteConfig,
-    parentPath: string,
-    parentIdent: string
-  ) {
+  function compileRoute(config: RouteConfig, parentPath: string, parentIdent: string) {
     const [route, children] = config.layout
       ? [
           parsePageRoute(context, config.layout),
@@ -77,9 +72,7 @@ function compileAppRoute(appRoute: RouteConfig, context: string) {
     lines.push(
       "",
       "config = router_config_create()",
-      `router_config_set_path(config, ${s(
-        route.path.substring(parentPath.length)
-      )})`,
+      `router_config_set_path(config, ${s(route.path.substring(parentPath.length))})`,
       `router_config_set_component(config, NULL, ${s(route.ident)})`
     );
     if (children.length > 0 || config.notFound) {
@@ -136,10 +129,7 @@ export class AppRouterCompiler {
     this.active = fs.existsSync(options.appDir);
     this.route = this.active ? scanAppRoute(options.appDir) : null;
     this.active =
-      this.active &&
-      (this.route.children.length > 0 ||
-        !!this.route.layout ||
-        !!this.route.page);
+      this.active && (this.route.children.length > 0 || !!this.route.layout || !!this.route.page);
   }
 
   compile() {

@@ -48,7 +48,7 @@ export default {
       },
       {
         test: /\.json$/,
-        use: ['ts-loader', 'json-loader'],
+        use: ["ts-loader", "json-loader"],
       },
       {
         test: /(layout|page)\.(ts|tsx|js|jsx)$/,
@@ -57,9 +57,9 @@ export default {
           {
             loader: "ts-loader",
             options: {
-              target: 'AppRouter'
-            }
-          }
+              target: "AppRouter",
+            },
+          },
         ],
       },
       {
@@ -81,7 +81,5 @@ export default {
   resolve: {
     extensions: [".ts", ".tsx", ".mjs", ".js", ".jsx"],
   },
-  plugins: [
-    new AppPlugin()
-  ]
+  plugins: [new AppPlugin()],
 };

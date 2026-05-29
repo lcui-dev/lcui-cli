@@ -14,6 +14,10 @@
   "scripts": {
     "build": "tsc",
     "test": "mocha 'test/**/*.test.js'",
+    "lint": "eslint . --ext .js,.cjs,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.cjs,.ts,.tsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "version": "yarn tsc && yarn changelog && git add CHANGELOG.md"
   },
@@ -49,10 +53,13 @@
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.12.11",
     "@types/react": "^18.2.64",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "codecov": "^3.8.2",
     "eslint": "^8.50.0",
     "mocha": "^10.1.0",
-    "nyc": "^15.1.0"
+    "nyc": "^15.1.0",
+    "prettier": "^3.8.3"
   },
   "bugs": {
     "url": "https://github.com/lc-ui/lcui-cli/issues"

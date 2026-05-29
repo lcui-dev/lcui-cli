@@ -79,9 +79,7 @@ function generateMetadata(resourcePath: string, outputPath: string) {
 
   if (/\.(ttf|woff|woff2)$/i.test(resourcePath)) {
     metadata.headerFiles = ["<pandagl.h>"];
-    metadata.initCode = `pd_font_library_load_file(${JSON.stringify(
-      outputPath
-    )});`;
+    metadata.initCode = `pd_font_library_load_file(${JSON.stringify(outputPath)});`;
   }
   return metadata;
 }
@@ -89,10 +87,7 @@ function generateMetadata(resourcePath: string, outputPath: string) {
 export default async function FileLoader(content: string | Buffer) {
   await this.generateModule(this.resourcePath, () => {
     const { outputPath, name } = this.getOptions();
-    const filePath = path.join(
-      outputPath,
-      interpolateName(this, name, content)
-    );
+    const filePath = path.join(outputPath, interpolateName(this, name, content));
     const metadata = generateMetadata(this.resourcePath, filePath);
     this.emitFile(filePath, content);
     return (

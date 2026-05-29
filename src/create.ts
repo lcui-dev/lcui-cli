@@ -31,8 +31,7 @@ const locales = {
       installNodeModules: "Installing node modules",
       projectCreated: (name) => `Successfully created project ${name}`,
       getStarted: "Get started with the following commands:",
-      initialCommit: (url) =>
-        `Initial commit\n\nInitialize project with ${url}`,
+      initialCommit: (url) => `Initial commit\n\nInitialize project with ${url}`,
       commitSkipped:
         "Skipped git commit due to missing username and email in git config.\nYou will need to perform the initial commit yourself.",
     },

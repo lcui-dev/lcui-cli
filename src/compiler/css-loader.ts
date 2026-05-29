@@ -5,10 +5,7 @@ import postcssModules from "postcss-modules";
 import { LoaderContext, LoaderInput, ModuleMetadata } from "../types.js";
 import { loadConfig } from "../utils.js";
 
-export default async function CSSLoader(
-  this: LoaderContext,
-  content: LoaderInput
-) {
+export default async function CSSLoader(this: LoaderContext, content: LoaderInput) {
   const loader = this;
   const { modules } = loader.getOptions();
   const cssText = `${content}`;
@@ -16,9 +13,8 @@ export default async function CSSLoader(
     postcssUrl({
       async url(asset) {
         try {
-          const outputPath = (
-            await loader.importModule(path.resolve(loader.context, asset.url))
-          ).default;
+          const outputPath = (await loader.importModule(path.resolve(loader.context, asset.url)))
+            .default;
           if (typeof outputPath === "string") {
             return outputPath;
           }
@@ -27,9 +23,7 @@ export default async function CSSLoader(
           loader.emitError(err);
         }
         loader.emitError(
-          new Error(
-            `url(${asset.url}): File does not exist or there is no matching loader`
-          )
+          new Error(`url(${asset.url}): File does not exist or there is no matching loader`)
         );
         return asset.url;
       },
@@ -43,22 +37,15 @@ export default async function CSSLoader(
       })
     );
   }
-  const customConfig = (await loadConfig(
-    path.dirname(loader.resourcePath),
-    "postcss"
-  )) as null | {
+  const customConfig = (await loadConfig(path.dirname(loader.resourcePath), "postcss")) as null | {
     plugins?: postcss.AcceptedPlugin[];
   };
   if (customConfig && Array.isArray(customConfig.plugins)) {
     customConfig.plugins.forEach((plugin) => processor.use(plugin));
   }
-  const result = await processor
-    .process(cssText, { from: loader.resourcePath })
-    .async();
+  const result = await processor.process(cssText, { from: loader.resourcePath }).async();
 
-  const ident = `css_str_${path
-    .parse(this.resourcePath)
-    .name.replace(/[^a-zA-Z0-9]/g, "_")}`;
+  const ident = `css_str_${path.parse(this.resourcePath).name.replace(/[^a-zA-Z0-9]/g, "_")}`;
 
   const metadata: ModuleMetadata = {
     type: "asset",
@@ -75,10 +62,7 @@ export default async function CSSLoader(
     if (modules) {
       const cssExport = result.messages.find((m) => m.type === "export");
       const cssExportTokens = cssExport ? cssExport.exportTokens : {};
-      return (
-        metadataLine +
-        `export default ${JSON.stringify(cssExportTokens, null, 2)};\n`
-      );
+      return metadataLine + `export default ${JSON.stringify(cssExportTokens, null, 2)};\n`;
     }
     return metadataLine + `export default ${JSON.stringify(result.css)};\n`;
   });

@@ -7,7 +7,10 @@ export class AppComponentsCompiler {
   options: CompilerOptions;
   dataFile: string;
 
-  constructor(options: CompilerOptions, private mainHeaderFile: string) {
+  constructor(
+    options: CompilerOptions,
+    private mainHeaderFile: string
+  ) {
     this.components = {};
     this.options = options;
     this.dataFile = path.join(options.buildDir, "components.json");
@@ -51,9 +54,7 @@ export class AppComponentsCompiler {
         ...componentList
           .filter((c) => c.resourceLoaderName)
           .map((c) => `${c.resourceLoaderName}();`),
-        ...componentList.map((c) =>
-          c.components.map((name) => `ui_register_${name}();`)
-        ),
+        ...componentList.map((c) => c.components.map((name) => `ui_register_${name}();`)),
       ],
     };
   }

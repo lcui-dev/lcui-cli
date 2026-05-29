@@ -28,7 +28,7 @@ Before installing this tool, you need to install these dependencies on your comp
 
 Afterwards, run:
 
-``` bash
+```bash
 npm install -g @lcui/cli
 # Or
 yarn global add @lcui/cli

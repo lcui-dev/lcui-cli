@@ -1,11 +1,6 @@
 import path from "path";
 import { getResourceLoaderName, toIdent } from "../utils.js";
-import {
-  LoaderContext,
-  LoaderInput,
-  ResourceNode,
-  UILoaderOptions,
-} from "../types.js";
+import { LoaderContext, LoaderInput, ResourceNode, UILoaderOptions } from "../types.js";
 
 function toSnakeCase(str) {
   return str.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase();
@@ -41,7 +36,7 @@ async function compile(
   };
   let state = stateEnum.START;
   let currentSchema = createSchema();
-  let schemas = {};
+  const schemas = {};
 
   const { name: fileName, base: fileBase } = path.parse(filePath);
   const globalLines = [];
@@ -69,9 +64,7 @@ async function compile(
     if (schema.refs.length > 0) {
       lines.push(
         "typedef struct {",
-        ...Array.from(new Set(schema.refs)).map(
-          (ref) => `${indentStr}ui_widget_t *${ref};`
-        ),
+        ...Array.from(new Set(schema.refs)).map((ref) => `${indentStr}ui_widget_t *${ref};`),
         `} ${identPrefix}_refs_t;`,
         ""
       );
@@ -105,9 +98,7 @@ async function compile(
       })`,
       "{",
       ...(count > 0 ? [`${indentStr}ui_widget_t *w[${count}];\n`] : []),
-      ...schema.templateLines.map((line) =>
-        line ? `${indentStr}${line}` : line
-      ),
+      ...schema.templateLines.map((line) => (line ? `${indentStr}${line}` : line)),
       "}",
       ""
     );
@@ -199,18 +190,14 @@ async function compile(
       return childIdent;
     });
     identList.forEach((childIdent) => {
-      currentSchema.templateLines.push(
-        `ui_widget_append(${ident}, ${childIdent});`
-      );
+      currentSchema.templateLines.push(`ui_widget_append(${ident}, ${childIdent});`);
     });
   }
 
   function allocWidgetNodeIdent(node: ResourceNode) {
     let ident = "";
     const attrs = node.attributes || {};
-    const widgetType = ["w", "widget"].includes(node.name)
-      ? attrs.type
-      : node.name;
+    const widgetType = ["w", "widget"].includes(node.name) ? attrs.type : node.name;
 
     if (attrs.ref && typeof attrs.ref === "string") {
       ident = toIdent(attrs.ref);
@@ -226,10 +213,7 @@ async function compile(
   }
 
   function compileUINode(node) {
-    return compileWidgetNode(
-      node.children.length == 1 ? node.children[0] : node,
-      parentIdent
-    );
+    return compileWidgetNode(node.children.length == 1 ? node.children[0] : node, parentIdent);
   }
 
   function compileWidgetNode(node: ResourceNode, ident: string) {
@@ -240,9 +224,7 @@ async function compile(
         case "ref":
           break;
         case "class":
-          currentSchema.templateLines.push(
-            `ui_widget_add_class(${ident}, "${attrs[attrName]}");`
-          );
+          currentSchema.templateLines.push(`ui_widget_add_class(${ident}, "${attrs[attrName]}");`);
           return;
         case "style":
           currentSchema.templateLines.push(
@@ -302,9 +284,7 @@ async function compile(
   }
 
   compileNode(rootNode);
-  (
-    await Promise.all(assets.map((asset) => context.importModule(asset)))
-  ).forEach((asset) => {
+  (await Promise.all(assets.map((asset) => context.importModule(asset)))).forEach((asset) => {
     asset.metadata.headerFiles.forEach((file) => headerFiles.add(file));
     resourceLines.push(asset.metadata.initCode);
   });
@@ -319,10 +299,7 @@ async function compile(
   ].join("\n");
 }
 
-export default async function UILoader(
-  this: LoaderContext,
-  content: LoaderInput
-) {
+export default async function UILoader(this: LoaderContext, content: LoaderInput) {
   let node: ResourceNode | undefined;
 
   if (typeof content === "string") {

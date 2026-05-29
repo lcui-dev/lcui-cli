@@ -122,7 +122,7 @@ export type Loader = (
 export type ResolvedLoaderRule = {
   loader: Loader;
   options: LoaderOptions;
-}
+};
 
 export type LoaderRule = {
   loader: string | Loader;

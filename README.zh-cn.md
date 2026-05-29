@@ -30,7 +30,7 @@ LCUI CLI 致力于将 LCUI 生态中的工具基础标准化。
 
 之后，运行：
 
-``` bash
+```bash
 npm install -g @lcui/cli
 # 或者
 yarn global add @lcui/cli

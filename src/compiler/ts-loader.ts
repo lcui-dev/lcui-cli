@@ -10,10 +10,7 @@ function isComponentFunc(name: string) {
   return name.charAt(0) >= "A" && name.charAt(0) <= "Z";
 }
 
-export default async function TsLoader(
-  this: LoaderContext,
-  content: LoaderInput
-) {
+export default async function TsLoader(this: LoaderContext, content: LoaderInput) {
   const loader = this;
   const modules: Promise<Module>[] = [];
   const localFuncNames: string[] = [];
@@ -23,9 +20,7 @@ export default async function TsLoader(
     return (sourceFile) => {
       function visitor(node: ts.Node) {
         if (ts.isImportDeclaration(node)) {
-          const importPath = node.moduleSpecifier
-            .getText(sourceFile)
-            .slice(1, -1);
+          const importPath = node.moduleSpecifier.getText(sourceFile).slice(1, -1);
           let modulePath = loader.resolveModule(importPath);
           modules.push(loader.importModule(importPath));
           if (modulePath.startsWith(loader.buildDir)) {
@@ -40,11 +35,7 @@ export default async function TsLoader(
             node.attributes
           );
         }
-        if (
-          ts.isFunctionDeclaration(node) &&
-          node.name &&
-          isComponentFunc(node.name.getText())
-        ) {
+        if (ts.isFunctionDeclaration(node) && node.name && isComponentFunc(node.name.getText())) {
           localFuncNames.push(node.name.getText());
         } else if (
           ts.isVariableDeclaration(node) &&
@@ -72,46 +63,32 @@ export default async function TsLoader(
     },
   });
 
-  const assets = (await Promise.all(modules)).filter(
-    (m) => m?.metadata?.type === "asset"
-  );
+  const assets = (await Promise.all(modules)).filter((m) => m?.metadata?.type === "asset");
   await loader.generateModule(
     loader.resourcePath,
     () =>
-      tsResult.outputText.replace(
-        "react/jsx-runtime",
-        "@lcui/react/lib/jsx-runtime.js"
-      ) + `\n\nexport const componentList = [${localFuncNames.join(", ")}];\n`
+      tsResult.outputText.replace("react/jsx-runtime", "@lcui/react/lib/jsx-runtime.js") +
+      `\n\nexport const componentList = [${localFuncNames.join(", ")}];\n`
   );
-  const { default: defaultComponentFunc, componentList } =
-    await loader.importModule(loader.resourcePath);
+  const { default: defaultComponentFunc, componentList } = await loader.importModule(
+    loader.resourcePath
+  );
 
   if (componentList.length < 1) {
     return;
   }
 
   const { compile } = await import(
-    `file://${path.join(
-      loader.modulesDir,
-      "@lcui",
-      "react",
-      "lib",
-      "index.js"
-    )}`
+    `file://${path.join(loader.modulesDir, "@lcui", "react", "lib", "index.js")}`
   );
   const options = this.getOptions();
   const { dir, name, base } = path.parse(loader.resourcePath);
   let defaultComponentName =
     defaultComponentFunc?.displayName || defaultComponentFunc?.name || name;
 
-  const isInAppDir =
-    loader.appDir &&
-    loader.resourcePath.startsWith(loader.appDir + path.sep);
+  const isInAppDir = loader.appDir && loader.resourcePath.startsWith(loader.appDir + path.sep);
   if (options.target === "AppRouter" || isInAppDir) {
-    defaultComponentName = parsePageRoute(
-      loader.appDir,
-      loader.resourcePath
-    ).ident;
+    defaultComponentName = parsePageRoute(loader.appDir, loader.resourcePath).ident;
   }
 
   const componentName = snakeCase(defaultComponentName);
@@ -122,8 +99,7 @@ export default async function TsLoader(
         component,
         {},
         {
-          target:
-            defaultComponentFunc === component ? options.target : undefined,
+          target: defaultComponentFunc === component ? options.target : undefined,
           name: componentName,
         }
       ) as {
@@ -153,9 +129,7 @@ export default async function TsLoader(
   if (!fs.existsSync(headerFilePath)) {
     loader.emitFile(
       headerFilePath,
-      `#include <ui.h>\n\n${result
-        .map((item) => item.declarationCode)
-        .join("\n\n")}${
+      `#include <ui.h>\n\n${result.map((item) => item.declarationCode).join("\n\n")}${
         resourceLoaderName ? `\nvoid ${resourceLoaderName}(void);\n` : ""
       }`
     );
@@ -163,9 +137,7 @@ export default async function TsLoader(
   if (!loader.data.components) {
     loader.data.components = {};
   }
-  loader.data.components[
-    path.relative(loader.rootContext, loader.resourcePath)
-  ] = {
+  loader.data.components[path.relative(loader.rootContext, loader.resourcePath)] = {
     resourceLoaderName,
     headerFilePath: path.relative(loader.rootContext, headerFilePath),
     assets,

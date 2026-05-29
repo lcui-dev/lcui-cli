@@ -9,9 +9,5 @@ export function runXMake({ logger, options }: CompilerInstance) {
     return;
   }
   logger.info("Run xmake to build the project...");
-  spawnSync(
-    "xmake",
-    ["-y", "-P", "."],
-    { cwd: options.rootContext, stdio: "inherit" },
-  );
+  spawnSync("xmake", ["-y", "-P", "."], { cwd: options.rootContext, stdio: "inherit" });
 }

@@ -11,18 +11,9 @@ export default class AppPlugin {
   apply(compiler: CompilerInstance) {
     const { appDir, sourceDir } = compiler.options;
     const routerCompiler = new AppRouterCompiler(compiler.options);
-    const mainHeaderFile = path.join(
-      routerCompiler.active ? appDir : sourceDir,
-      "main.h"
-    );
-    const mainSourceFile = path.join(
-      routerCompiler.active ? appDir : sourceDir,
-      "main.c"
-    );
-    const componentsCompiler = new AppComponentsCompiler(
-      compiler.options,
-      mainHeaderFile
-    );
+    const mainHeaderFile = path.join(routerCompiler.active ? appDir : sourceDir, "main.h");
+    const mainSourceFile = path.join(routerCompiler.active ? appDir : sourceDir, "main.c");
+    const componentsCompiler = new AppComponentsCompiler(compiler.options, mainHeaderFile);
 
     if (!compiler.options.clean) {
       componentsCompiler.loadCache();
@@ -60,19 +51,12 @@ ${router.initCode.map((line) => `        ${line}`).join("\n")}
         `#include <locale.h>
 #include <LCUI.h>
 #include <LCUI/main.h>
-${[...router.includeCode, ...components.includeCode, ...router.globalCode].join(
-  "\n"
-)}
+${[...router.includeCode, ...components.includeCode, ...router.globalCode].join("\n")}
 
 static void app_init(void)
 {
         lcui_init();
-${[
-  ...router.baseInitCode,
-  ...router.componentsInitCode,
-  ...components.initCode,
-  ...router.initCode,
-]
+${[...router.baseInitCode, ...router.componentsInitCode, ...components.initCode, ...router.initCode]
   .filter(Boolean)
   .map((line) => `        ${line}`)
   .join("\n")}

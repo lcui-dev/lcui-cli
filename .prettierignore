@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+vendor.node_modules/
+
+# Build output
+lib/
+dist/
+build/
+
+# Coverage / cache
+coverage/
+.nyc_output/
+.lcui/
+.xmake/
+
+# Logs
+*.log
+yarn-error.log
+
+# Lock files
+yarn.lock
+package-lock.json
+
+# Test fixtures (generated projects)
+test/fixtures/*/project/
+
+# Misc
+CHANGELOG.md
+*.zip
+*.tgz

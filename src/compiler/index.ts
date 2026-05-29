@@ -89,13 +89,7 @@ function resolveModuleExt(modulePath) {
 
 function isNodeModulePath(name) {
   const { root, dir } = path.parse(name.replace(/\\|\//g, "/"));
-  return (
-    !root &&
-    dir !== "." &&
-    dir !== ".." &&
-    !dir.startsWith(`./`) &&
-    !dir.startsWith(`../`)
-  );
+  return !root && dir !== "." && dir !== ".." && !dir.startsWith(`./`) && !dir.startsWith(`../`);
 }
 
 /**
@@ -140,18 +134,11 @@ function resolveModuleOutputPath(name, context) {
   }
   const modulesPath = path.join(context.buildDir, "node_modules");
   const outputPath = resolveModuleExt(
-    path.join(
-      context.buildDir,
-      path.relative(context.rootContext, resolvedPath)
-    )
+    path.join(context.buildDir, path.relative(context.rootContext, resolvedPath))
   );
   // 更改路径，避免 import 语句中的模块路径被解析到构建目录中的 node_modules
   if (outputPath.startsWith(modulesPath)) {
-    return path.join(
-      context.buildDir,
-      "[modules]",
-      outputPath.substring(modulesPath.length)
-    );
+    return path.join(context.buildDir, "[modules]", outputPath.substring(modulesPath.length));
   }
   return outputPath;
 }
@@ -180,10 +167,7 @@ function createLogger(logFile, verbose) {
   });
 }
 
-export default async function compile(
-  file: string,
-  compilerOptions: CompilerOptions
-) {
+export default async function compile(file: string, compilerOptions: CompilerOptions) {
   const options: CompilerOptions = {
     ...getDirs(),
     clean: !file,
@@ -205,9 +189,7 @@ export default async function compile(
               await fn(...args);
             } catch (err) {
               logger.error(
-                `in ${name}:\n${
-                  err instanceof Error ? `${err.message}\n${err.stack}` : err
-                }`
+                `in ${name}:\n${err instanceof Error ? `${err.message}\n${err.stack}` : err}`
               );
               throw err;
             }
@@ -234,26 +216,18 @@ export default async function compile(
 
   function printError(resourcePath: string, error: string | Error) {
     logger.error(
-      `in ${resourcePath}:\n${
-        error instanceof Error ? `${error.message}\n${error.stack}` : error
-      }`
+      `in ${resourcePath}:\n${error instanceof Error ? `${error.message}\n${error.stack}` : error}`
     );
   }
 
-  function useModuleCache(
-    modulePath: string,
-    context: CompilerContext
-  ): ModuleCacheItem {
+  function useModuleCache(modulePath: string, context: CompilerContext): ModuleCacheItem {
     const outputPath = resolveModuleOutputPath(modulePath, context);
     const outputDirPath = path.dirname(outputPath);
     let cache = moduleCacheMap[outputPath];
     if (cache) {
       return cache;
     }
-    if (
-      outputDirPath.startsWith(context.buildDir) &&
-      !fs.existsSync(outputDirPath)
-    ) {
+    if (outputDirPath.startsWith(context.buildDir) && !fs.existsSync(outputDirPath)) {
       fs.mkdirpSync(outputDirPath);
     }
     cache = {
@@ -279,9 +253,7 @@ export default async function compile(
 
   async function generateModule(modulePath, moduleGenerator, context) {
     const cache = useModuleCache(modulePath, context);
-    context.logger.debug(
-      `Generating ${path.relative(context.rootContext, cache.outputPath)}`
-    );
+    context.logger.debug(`Generating ${path.relative(context.rootContext, cache.outputPath)}`);
     try {
       const content = await moduleGenerator();
       fs.writeFileSync(cache.outputPath, content);
@@ -292,35 +264,35 @@ export default async function compile(
     }
   }
 
-  async function loadModule(
-    resourcePath: string,
-    loaders: ResolvedLoaderRule[]
-  ) {
+  async function loadModule(resourcePath: string, loaders: ResolvedLoaderRule[]) {
     const data = {};
     const context = createCompilerContext(resourcePath);
-    const content = await loaders.reduceRight(async (inputPromise, config) => {
-      const input = await inputPromise;
-      try {
-        return await (function LOADER_EXECUTION() {
-          return config.loader.call(
-            {
-              ...context,
-              data,
-              getOptions() {
-                return config.options;
+    const content = await loaders.reduceRight(
+      async (inputPromise, config) => {
+        const input = await inputPromise;
+        try {
+          return await (function LOADER_EXECUTION() {
+            return config.loader.call(
+              {
+                ...context,
+                data,
+                getOptions() {
+                  return config.options;
+                },
               },
-            },
-            input
+              input
+            );
+          })();
+        } catch (err) {
+          context.emitError(
+            `ModuleLoaderError (from ${config.loader.name}): ${err.message}\n${err.stack}`
           );
-        })();
-      } catch (err) {
-        context.emitError(
-          `ModuleLoaderError (from ${config.loader.name}): ${err.message}\n${err.stack}`
-        );
-        err.isReported = true;
-        throw err;
-      }
-    }, Promise.resolve(fs.readFileSync(resourcePath)));
+          err.isReported = true;
+          throw err;
+        }
+      },
+      Promise.resolve(fs.readFileSync(resourcePath))
+    );
     compiler.hooks.loadModule.call(resourcePath, data);
     return {
       content,
@@ -354,16 +326,11 @@ export default async function compile(
       return cache.exports;
     }
     try {
-      context.logger.info(
-        `Compiling ${path.relative(context.rootContext, resolvedPath)}`
-      );
+      context.logger.info(`Compiling ${path.relative(context.rootContext, resolvedPath)}`);
       const result = await loadModule(resolvedPath, loaders);
       if (result.content !== undefined) {
         context.logger.debug(
-          `Generating ${path.relative(
-            context.rootContext,
-            result.resourceOutputPath
-          )}`
+          `Generating ${path.relative(context.rootContext, result.resourceOutputPath)}`
         );
         fs.writeFileSync(result.resourceOutputPath, result.content);
       }
@@ -444,9 +411,7 @@ export default async function compile(
   async function compileFile(filePath: string) {
     if (fs.statSync(filePath).isDirectory()) {
       return Promise.all(
-        fs
-          .readdirSync(filePath)
-          .map((name) => compileFile(path.join(filePath, name)))
+        fs.readdirSync(filePath).map((name) => compileFile(path.join(filePath, name)))
       );
     }
     const loaders = matchLoaders(filePath);
