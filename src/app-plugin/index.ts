@@ -2,7 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 import { AppComponentsCompiler } from "./components.js";
 import { AppRouterCompiler } from "./router.js";
-import { CompilerInstance } from "../types.js";
+import { CompilerInstance, ComponentConfig } from "../types.js";
 import { runXMake } from "./xmake.js";
 
 export default class AppPlugin {
@@ -19,8 +19,8 @@ export default class AppPlugin {
       componentsCompiler.loadCache();
     }
     compiler.hooks.loadModule.tap(this.name, (_file, data) => {
-      if (data.components) {
-        componentsCompiler.merge(data.components);
+      if (data.components && typeof data.components === "object") {
+        componentsCompiler.merge(data.components as Record<string, ComponentConfig>);
       }
     });
     compiler.hooks.done.tap(this.name, () => {

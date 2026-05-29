@@ -17,8 +17,8 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
   const outputDirPath = path.dirname(loader.resolveModule(loader.resourcePath));
 
   function transformer(context: ts.TransformationContext) {
-    return (sourceFile) => {
-      function visitor(node: ts.Node) {
+    return (sourceFile: ts.SourceFile) => {
+      function visitor(node: ts.Node): ts.Node {
         if (ts.isImportDeclaration(node)) {
           const importPath = node.moduleSpecifier.getText(sourceFile).slice(1, -1);
           let modulePath = loader.resolveModule(importPath);
@@ -70,9 +70,11 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
       tsResult.outputText.replace("react/jsx-runtime", "@lcui/react/lib/jsx-runtime.js") +
       `\n\nexport const componentList = [${localFuncNames.join(", ")}];\n`
   );
-  const { default: defaultComponentFunc, componentList } = await loader.importModule(
-    loader.resourcePath
-  );
+  const importedModule = (await loader.importModule(loader.resourcePath)) as Module & {
+    default: (React.FC & { displayName?: string }) | undefined;
+    componentList: React.FC[];
+  };
+  const { default: defaultComponentFunc, componentList } = importedModule;
 
   if (componentList.length < 1) {
     return;
@@ -137,7 +139,9 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
   if (!loader.data.components) {
     loader.data.components = {};
   }
-  loader.data.components[path.relative(loader.rootContext, loader.resourcePath)] = {
+  (loader.data.components as Record<string, unknown>)[
+    path.relative(loader.rootContext, loader.resourcePath)
+  ] = {
     resourceLoaderName,
     headerFilePath: path.relative(loader.rootContext, headerFilePath),
     assets,

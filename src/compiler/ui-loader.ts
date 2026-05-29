@@ -1,16 +1,25 @@
 import path from "path";
 import { getResourceLoaderName, toIdent } from "../utils.js";
-import { LoaderContext, LoaderInput, ResourceNode, UILoaderOptions } from "../types.js";
+import { Loader, LoaderContext, LoaderInput, ResourceNode, UILoaderOptions } from "../types.js";
 
-function toSnakeCase(str) {
+function toSnakeCase(str: string): string {
   return str.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase();
 }
 
-function toDashCase(str) {
+function toDashCase(str: string): string {
   return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
-function createSchema() {
+interface Schema {
+  name: string;
+  refs: string[];
+  code: string;
+  typesCode: string;
+  template: ResourceNode | null;
+  templateLines: string[];
+}
+
+function createSchema(): Schema {
   return {
     name: "",
     refs: [],
@@ -36,17 +45,17 @@ async function compile(
   };
   let state = stateEnum.START;
   let currentSchema = createSchema();
-  const schemas = {};
+  const schemas: Record<string, Schema> = {};
 
   const { name: fileName, base: fileBase } = path.parse(filePath);
-  const globalLines = [];
-  const resourceLines = [];
-  const assets = [];
-  const headerFiles = new Set(["<ui.h>"]);
+  const globalLines: string[] = [];
+  const resourceLines: string[] = [];
+  const assets: string[] = [];
+  const headerFiles = new Set<string>(["<ui.h>"]);
   const indentStr = " ".repeat(indent);
   const parentIdent = "parent";
 
-  function allocTextVar(str) {
+  function allocTextVar(str: string): string {
     const ident = `widget_text_${globalIdentCount++}`;
     const numArrStr = Array.from(Buffer.from(str, "utf-8"))
       .map((ch) => `0x${ch.toString(16)}`)
@@ -57,9 +66,9 @@ async function compile(
     );
     return ident;
   }
-  function compileSchema(schema) {
+  function compileSchema(schema: Schema): string {
     const identPrefix = toIdent(schema.name);
-    const lines = [];
+    const lines: string[] = [];
 
     if (schema.refs.length > 0) {
       lines.push(
@@ -76,7 +85,10 @@ async function compile(
       let baseType = "NULL";
       const protoIdent = `${identPrefix}_proto`;
 
-      if (schema.template.children.length === 1) {
+      if (!schema.template) {
+        throw new SyntaxError(`Schema "${schema.name}" has no <template>`);
+      }
+      if (schema.template.children && schema.template.children.length === 1) {
         baseType = schema.template.children[0].name;
         if (baseType === "w" || baseType === "widget") {
           baseType = "NULL";
@@ -108,7 +120,7 @@ async function compile(
     return lines.join("\n");
   }
 
-  function generateIncluding() {
+  function generateIncluding(): string {
     return Array.from(headerFiles)
       .map((file) => {
         let filePath = file;
@@ -122,12 +134,11 @@ async function compile(
       .join("\n");
   }
 
-  function generateResourceFunc() {
+  function generateResourceFunc(): string {
+    const onlySchemaName =
+      Object.keys(schemas).length === 1 && currentSchema.name ? currentSchema.name : undefined;
     return [
-      `void ${getResourceLoaderName(
-        fileName,
-        Object.keys(schemas).length === 1 && currentSchema.name
-      )}(void)`,
+      `void ${getResourceLoaderName(fileName, onlySchemaName)}(void)`,
       "{",
       ...resourceLines.map((line) => (line ? `${indentStr}${line}` : line)),
       "}",
@@ -135,35 +146,41 @@ async function compile(
     ].join("\n");
   }
 
-  function compileResourceNode(node) {
-    const attrs = node.attributes || {};
+  function compileResourceNode(node: ResourceNode): void {
+    const attrs = (node.attributes || {}) as Record<string, unknown>;
     if (attrs.type === "text/c") {
       if (node.text) {
         globalLines.push(node.text);
       }
       return;
     }
-    assets.push(attrs.src);
+    if (typeof attrs.src === "string") {
+      assets.push(attrs.src);
+    }
   }
 
-  function compileSchemaNode(node) {
+  function compileSchemaNode(node: ResourceNode): void {
     currentSchema = createSchema();
-    node.children.forEach((child) => {
+    (node.children ?? []).forEach((child) => {
       switch (child.name) {
         case "name":
-          currentSchema.name = child.text;
+          currentSchema.name = child.text ?? "";
           break;
         case "include":
-          headerFiles.add(child.text);
+          if (child.text) {
+            headerFiles.add(child.text);
+          }
           break;
         case "ref":
-          currentSchema.refs.push(child.text);
+          if (child.text) {
+            currentSchema.refs.push(child.text);
+          }
           break;
         case "code":
-          if (child.attributes?.kind === "types") {
-            currentSchema.typesCode += child.text;
+          if ((child.attributes as Record<string, unknown> | undefined)?.kind === "types") {
+            currentSchema.typesCode += child.text ?? "";
           } else {
-            currentSchema.code += child.text;
+            currentSchema.code += child.text ?? "";
           }
           break;
         case "template":
@@ -180,13 +197,13 @@ async function compile(
     schemas[currentSchema.name] = currentSchema;
   }
 
-  function compileWidgetNodeChildren(node, ident) {
+  function compileWidgetNodeChildren(node: ResourceNode, ident: string): void {
     if (!Array.isArray(node.children)) {
       return;
     }
-    const identList = node.children.map((node) => {
-      const childIdent = allocWidgetNodeIdent(node);
-      compileWidgetNode(node, childIdent);
+    const identList = node.children.map((child) => {
+      const childIdent = allocWidgetNodeIdent(child);
+      compileWidgetNode(child, childIdent);
       return childIdent;
     });
     identList.forEach((childIdent) => {
@@ -194,9 +211,9 @@ async function compile(
     });
   }
 
-  function allocWidgetNodeIdent(node: ResourceNode) {
+  function allocWidgetNodeIdent(node: ResourceNode): string {
     let ident = "";
-    const attrs = node.attributes || {};
+    const attrs = (node.attributes || {}) as Record<string, unknown>;
     const widgetType = ["w", "widget"].includes(node.name) ? attrs.type : node.name;
 
     if (attrs.ref && typeof attrs.ref === "string") {
@@ -207,42 +224,49 @@ async function compile(
       ident = `w[${count++}]`;
     }
     currentSchema.templateLines.push(
-      `${ident} = ui_create_widget(${widgetType ? `"${widgetType}"` : "NULL"});`
+      `${ident} = ui_create_widget(${widgetType ? `"${String(widgetType)}"` : "NULL"});`
     );
     return ident;
   }
 
-  function compileUINode(node) {
-    return compileWidgetNode(node.children.length == 1 ? node.children[0] : node, parentIdent);
+  function compileUINode(node: ResourceNode): void {
+    const children = node.children ?? [];
+    compileWidgetNode(children.length === 1 ? children[0] : node, parentIdent);
   }
 
-  function compileWidgetNode(node: ResourceNode, ident: string) {
-    const attrs = node.attributes || {};
+  function compileWidgetNode(node: ResourceNode, ident: string): void {
+    const attrs = (node.attributes || {}) as Record<string, unknown>;
 
     Object.keys(attrs).forEach((attrName) => {
       switch (attrName) {
         case "ref":
           break;
         case "class":
-          currentSchema.templateLines.push(`ui_widget_add_class(${ident}, "${attrs[attrName]}");`);
-          return;
-        case "style":
           currentSchema.templateLines.push(
-            ...Object.entries(attrs.style).map(([key, value]) => {
-              if (typeof value === "number") {
-                return `ui_widget_set_style_unit_value(${ident}, css_prop_${toSnakeCase(
-                  key
-                )}, ${value}, CSS_UNIT_PX);`;
-              }
-              return `ui_widget_set_style_string(${ident}), "${toDashCase(
-                key
-              )}", ${JSON.stringify(value)});`;
-            })
+            `ui_widget_add_class(${ident}, "${String(attrs[attrName])}");`
           );
+          return;
+        case "style": {
+          const styleObj = attrs.style;
+          if (styleObj && typeof styleObj === "object") {
+            currentSchema.templateLines.push(
+              ...Object.entries(styleObj as Record<string, unknown>).map(([key, value]) => {
+                if (typeof value === "number") {
+                  return `ui_widget_set_style_unit_value(${ident}, css_prop_${toSnakeCase(
+                    key
+                  )}, ${value}, CSS_UNIT_PX);`;
+                }
+                return `ui_widget_set_style_string(${ident}), "${toDashCase(
+                  key
+                )}", ${JSON.stringify(value)});`;
+              })
+            );
+          }
           break;
+        }
         default:
           currentSchema.templateLines.push(
-            `ui_widget_set_attr(${ident}, "${attrName}", "${attrs[attrName]}");`
+            `ui_widget_set_attr(${ident}, "${attrName}", "${String(attrs[attrName])}");`
           );
           break;
       }
@@ -255,7 +279,7 @@ async function compile(
     compileWidgetNodeChildren(node, ident);
   }
 
-  function compileNode(node: ResourceNode) {
+  function compileNode(node: ResourceNode): void {
     switch (node.name) {
       case "ui":
         if (state !== stateEnum.START) {
@@ -268,7 +292,8 @@ async function compile(
       case "lcui-app":
         break;
       case "resource":
-        return compileResourceNode(node);
+        compileResourceNode(node);
+        return;
       case "schema":
         if (state !== stateEnum.START) {
           throw SyntaxError(`<schema> must be at the top level`);
@@ -280,11 +305,15 @@ async function compile(
       default:
         throw SyntaxError(`Unknown node: ${node.name}`);
     }
-    node.children.forEach(compileNode);
+    (node.children ?? []).forEach(compileNode);
   }
 
   compileNode(rootNode);
-  (await Promise.all(assets.map((asset) => context.importModule(asset)))).forEach((asset) => {
+  const importedAssets = await Promise.all(assets.map((asset) => context.importModule(asset)));
+  importedAssets.forEach((asset) => {
+    if (!asset) {
+      return;
+    }
     asset.metadata.headerFiles.forEach((file) => headerFiles.add(file));
     resourceLines.push(asset.metadata.initCode);
   });
@@ -299,18 +328,23 @@ async function compile(
   ].join("\n");
 }
 
-export default async function UILoader(this: LoaderContext, content: LoaderInput) {
-  let node: ResourceNode | undefined;
+const UILoader: Loader<LoaderInput, string> = async function UILoader(
+  this: LoaderContext,
+  content
+) {
+  let node: ResourceNode;
 
   if (typeof content === "string") {
-    node = JSON.parse(content);
-  } else if (content && "name" in content) {
-    node = content;
+    node = JSON.parse(content) as ResourceNode;
+  } else if (content && typeof content === "object" && "name" in content) {
+    node = content as ResourceNode;
   } else {
     throw new Error("invalid content");
   }
   return compile(node, this, {
-    ...this.getOptions(),
+    ...this.getOptions<UILoaderOptions>(),
     filePath: this.resourcePath,
   });
-}
+};
+
+export default UILoader;

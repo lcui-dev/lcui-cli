@@ -1,12 +1,15 @@
 import { Element, xml2js } from "xml-js";
-import { LoaderContext } from "../types.js";
+import { Loader, LoaderContext } from "../types.js";
 
 interface XMLElement extends Element {
   children: XMLElement[];
 }
 
-export default function XMLLoader(this: LoaderContext, content: string) {
-  const data = xml2js(content, {
+const XMLLoader: Loader<string | Buffer, XMLElement | void> = function XMLLoader(
+  this: LoaderContext,
+  content
+) {
+  const data = xml2js(`${content}`, {
     ignoreCdata: true,
     ignoreDeclaration: true,
     ignoreComment: true,
@@ -19,4 +22,6 @@ export default function XMLLoader(this: LoaderContext, content: string) {
     return root;
   }
   this.emitError(new Error("invalid xml file"));
-}
+};
+
+export default XMLLoader;

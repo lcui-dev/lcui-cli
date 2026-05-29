@@ -5,18 +5,35 @@ import { simpleGit } from "simple-git";
 import { osLocaleSync } from "os-locale";
 import { execSync } from "child_process";
 
-const locales = {
+interface LocaleMessages {
+  projectExists: string;
+  downloading: (url: string) => string;
+  initGitRepo: string;
+  installNodeModules: string;
+  projectCreated: (name: string) => string;
+  getStarted: string;
+  initialCommit: (url: string) => string;
+  commitSkipped: string;
+}
+
+interface LocaleEntry {
+  libRepo: string;
+  templateRepo: string;
+  message: LocaleMessages;
+}
+
+const locales: { cn: LocaleEntry; en: LocaleEntry } = {
   cn: {
     libRepo: "https://gitee.com/lc-soft/LCUI.git",
     templateRepo: "https://gitee.com/lcui-dev/lcui-quick-start.git",
     message: {
       projectExists: "项目目录早已存在",
-      downloading: (url) => `正在下载项目模板：${url}`,
+      downloading: (url: string) => `正在下载项目模板：${url}`,
       initGitRepo: "正在为项目初始化 Git 仓库",
       installNodeModules: "正在安装依赖项",
-      projectCreated: (name) => `已成功创建项目 ${name}`,
+      projectCreated: (name: string) => `已成功创建项目 ${name}`,
       getStarted: "使用以下命令开始体验：",
-      initialCommit: (url) => `初始化项目\n\n使用项目模板 ${url} 初始化`,
+      initialCommit: (url: string) => `初始化项目\n\n使用项目模板 ${url} 初始化`,
       commitSkipped:
         "由于 git 配置中缺少用户名和电子邮件，已跳过 git commit 命令。\n你需要自己执行初始提交。",
     },
@@ -26,12 +43,12 @@ const locales = {
     templateRepo: "https://github.com/lcui-dev/lcui-quick-start.git",
     message: {
       projectExists: "The project directory already exists",
-      downloading: (url) => `Downloading project template: ${url}`,
+      downloading: (url: string) => `Downloading project template: ${url}`,
       initGitRepo: "Initializing git repository",
       installNodeModules: "Installing node modules",
-      projectCreated: (name) => `Successfully created project ${name}`,
+      projectCreated: (name: string) => `Successfully created project ${name}`,
       getStarted: "Get started with the following commands:",
-      initialCommit: (url) => `Initial commit\n\nInitialize project with ${url}`,
+      initialCommit: (url: string) => `Initial commit\n\nInitialize project with ${url}`,
       commitSkipped:
         "Skipped git commit due to missing username and email in git config.\nYou will need to perform the initial commit yourself.",
     },
@@ -41,7 +58,7 @@ const locales = {
 class Creator {
   name: string;
   dir: string;
-  env: typeof locales.cn;
+  env: LocaleEntry;
 
   constructor({ name, locale }: { name: string; locale: string }) {
     this.name = name;
@@ -71,7 +88,7 @@ class Creator {
 
     try {
       await git.add(".").commit(msg.initialCommit(env.templateRepo));
-    } catch (err) {
+    } catch {
       console.log(msg.commitSkipped);
     }
     let installed = false;
@@ -79,7 +96,7 @@ class Creator {
       console.log(env.message.installNodeModules);
       try {
         execSync("yarn install", { cwd: this.dir });
-      } catch (err) {
+      } catch {
         execSync("npm install", { cwd: this.dir });
       }
       installed = true;
@@ -97,7 +114,7 @@ class Creator {
   }
 }
 
-export async function create(name) {
+export async function create(name: string) {
   const locale = await osLocaleSync();
   return new Creator({ name, locale }).run();
 }

@@ -17,7 +17,7 @@ export default {
         use: ["ui-loader", "yaml-loader"],
       },
       {
-        test: (filePath) => {
+        test: (filePath: string) => {
           const { name, ext } = path.parse(filePath);
           return (
             !name.startsWith("_") &&
@@ -36,7 +36,7 @@ export default {
         ],
       },
       {
-        test: (filePath) => {
+        test: (filePath: string) => {
           const { name, ext } = path.parse(filePath);
           return (
             !name.startsWith("_") &&

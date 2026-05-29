@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import path from "path";
-import { LoaderContext, ModuleMetadata } from "../types.js";
+import { Loader, LoaderContext, ModuleMetadata } from "../types.js";
 
 /**
  * @see https://github.com/webpack/loader-utils/blob/master/lib/interpolateName.js
@@ -84,9 +84,17 @@ function generateMetadata(resourcePath: string, outputPath: string) {
   return metadata;
 }
 
-export default async function FileLoader(content: string | Buffer) {
+interface FileLoaderOptions {
+  outputPath: string;
+  name: string | ((p: string) => string);
+}
+
+const FileLoader: Loader<string | Buffer, void> = async function FileLoader(
+  this: LoaderContext,
+  content
+) {
   await this.generateModule(this.resourcePath, () => {
-    const { outputPath, name } = this.getOptions();
+    const { outputPath, name } = this.getOptions<FileLoaderOptions>();
     const filePath = path.join(outputPath, interpolateName(this, name, content));
     const metadata = generateMetadata(this.resourcePath, filePath);
     this.emitFile(filePath, content);
@@ -95,4 +103,6 @@ export default async function FileLoader(content: string | Buffer) {
       `export default ${JSON.stringify(filePath)};\n\n`
     );
   });
-}
+};
+
+export default FileLoader;

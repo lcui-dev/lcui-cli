@@ -1,4 +1,7 @@
-/** @type {Loader} */
-export default async function JSONLoader(content) {
+import { Loader } from "../types.js";
+
+const JSONLoader: Loader<string | Buffer, string> = async (content) => {
   return `export default ${content}\n`;
-}
+};
+
+export default JSONLoader;

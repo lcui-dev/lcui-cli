@@ -1,9 +1,12 @@
 import path from "path";
 import * as sass from "sass";
 import fs from "fs-extra";
-import { LoaderContext } from "../types.js";
+import { Loader, LoaderContext } from "../types.js";
 
-export default function SassLoader(this: LoaderContext, content: string) {
+const SassLoader: Loader<string | Buffer, string> = function SassLoader(
+  this: LoaderContext,
+  content
+) {
   const { dir, ext } = path.parse(this.resourcePath);
   const result = sass.compileString(`${content}`, {
     importer: {
@@ -22,4 +25,6 @@ export default function SassLoader(this: LoaderContext, content: string) {
     },
   });
   return result.css;
-}
+};
+
+export default SassLoader;

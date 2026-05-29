@@ -1,26 +1,34 @@
 import path from "path";
-import postcss from "postcss";
+import postcss, { Message } from "postcss";
 import postcssUrl from "postcss-url";
 import postcssModules from "postcss-modules";
-import { LoaderContext, LoaderInput, ModuleMetadata } from "../types.js";
+import { Loader, LoaderContext, ModuleMetadata, toError } from "../types.js";
 import { loadConfig } from "../utils.js";
 
-export default async function CSSLoader(this: LoaderContext, content: LoaderInput) {
+interface CSSLoaderOptions {
+  modules?: boolean;
+}
+
+const CSSLoader: Loader<string | Buffer, string> = async function CSSLoader(
+  this: LoaderContext,
+  content
+) {
   const loader = this;
-  const { modules } = loader.getOptions();
+  const { modules } = loader.getOptions<CSSLoaderOptions>();
   const cssText = `${content}`;
   const processor = postcss().use(
     postcssUrl({
       async url(asset) {
         try {
-          const outputPath = (await loader.importModule(path.resolve(loader.context, asset.url)))
-            .default;
+          const importedModule = await loader.importModule(path.resolve(loader.context, asset.url));
+          const outputPath = importedModule.default;
           if (typeof outputPath === "string") {
             return outputPath;
           }
         } catch (err) {
-          err.message = `url(${asset.url}):\n${err.message}`;
-          loader.emitError(err);
+          const e = toError(err);
+          e.message = `url(${asset.url}):\n${e.message}`;
+          loader.emitError(e);
         }
         loader.emitError(
           new Error(`url(${asset.url}): File does not exist or there is no matching loader`)
@@ -60,7 +68,10 @@ export default async function CSSLoader(this: LoaderContext, content: LoaderInpu
     const metadataStr = JSON.stringify(metadata, null, 2);
     const metadataLine = `export const metadata = ${metadataStr};\n`;
     if (modules) {
-      const cssExport = result.messages.find((m) => m.type === "export");
+      // postcss-modules 通过 message.type === "export" 提供 exportTokens
+      const cssExport = result.messages.find((m) => m.type === "export") as
+        | (Message & { exportTokens: Record<string, string> })
+        | undefined;
       const cssExportTokens = cssExport ? cssExport.exportTokens : {};
       return metadataLine + `export default ${JSON.stringify(cssExportTokens, null, 2)};\n`;
     }
@@ -85,4 +96,6 @@ export default async function CSSLoader(this: LoaderContext, content: LoaderInpu
     `${cssStr.substring(1, cssStr.length - 1)}\\`,
     '";\n',
   ].join("\n");
-}
+};
+
+export default CSSLoader;

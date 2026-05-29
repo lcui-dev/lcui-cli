@@ -3,12 +3,14 @@
     "target": "ESNext",
     "jsx": "react",
     "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "declaration": true,
     "rootDir": "./src",
     "outDir": "./lib",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "strict": true
   },
   "include": ["./src"]
 }

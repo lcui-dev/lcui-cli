@@ -10,8 +10,17 @@ interface RouteConfig {
   children: RouteConfig[];
 }
 
-function scanAppRoute(basePath: string) {
-  function scanRoute(dir: string) {
+interface CompiledRouter {
+  includeCode: string[];
+  baseInitCode: string[];
+  componentsInitCode: string[];
+  initCode: string[];
+  mainInitCode: string[];
+  globalCode: string[];
+}
+
+function scanAppRoute(basePath: string): RouteConfig {
+  function scanRoute(dir: string): RouteConfig {
     const route: RouteConfig = {
       page: "",
       layout: "",
@@ -35,17 +44,15 @@ function scanAppRoute(basePath: string) {
       }
       if (fs.statSync(filePath).isDirectory()) {
         const childRoute = scanRoute(filePath);
-        if (childRoute) {
-          if (childRoute.layout) {
-            route.children.push(childRoute);
-          } else {
-            route.children.push(...childRoute.children);
-            if (childRoute.page) {
-              route.children.push({
-                ...childRoute,
-                children: [],
-              });
-            }
+        if (childRoute.layout) {
+          route.children.push(childRoute);
+        } else {
+          route.children.push(...childRoute.children);
+          if (childRoute.page) {
+            route.children.push({
+              ...childRoute,
+              children: [],
+            });
           }
         }
       }
@@ -56,12 +63,12 @@ function scanAppRoute(basePath: string) {
   return scanRoute(basePath);
 }
 
-function compileAppRoute(appRoute: RouteConfig, context: string) {
+function compileAppRoute(appRoute: RouteConfig, context: string): string[] {
   const identList: string[] = [];
   const lines: string[] = [];
-  const s = (str: any) => (typeof str === "string" ? JSON.stringify(str) : "NULL");
+  const s = (str: unknown): string => (typeof str === "string" ? JSON.stringify(str) : "NULL");
 
-  function compileRoute(config: RouteConfig, parentPath: string, parentIdent: string) {
+  function compileRoute(config: RouteConfig, parentPath: string, parentIdent: string): void {
     const [route, children] = config.layout
       ? [
           parsePageRoute(context, config.layout),
@@ -126,14 +133,18 @@ export class AppRouterCompiler {
   active: boolean;
 
   constructor(private options: CompilerOptions) {
-    this.active = fs.existsSync(options.appDir);
-    this.route = this.active ? scanAppRoute(options.appDir) : null;
-    this.active =
-      this.active && (this.route.children.length > 0 || !!this.route.layout || !!this.route.page);
+    const exists = fs.existsSync(options.appDir);
+    if (exists) {
+      this.route = scanAppRoute(options.appDir);
+      this.active = this.route.children.length > 0 || !!this.route.layout || !!this.route.page;
+    } else {
+      this.route = null;
+      this.active = false;
+    }
   }
 
-  compile() {
-    const result = {
+  compile(): CompiledRouter {
+    const result: CompiledRouter = {
       includeCode: [],
       baseInitCode: [],
       componentsInitCode: [],
@@ -142,7 +153,7 @@ export class AppRouterCompiler {
       globalCode: [],
     };
 
-    if (!this.active) {
+    if (!this.active || !this.route) {
       return result;
     }
     return {

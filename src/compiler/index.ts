@@ -12,19 +12,24 @@ import YAMLLoader from "./yaml-loader.js";
 import JSONLoader from "./json-loader.js";
 import { resolveRootDir } from "../utils.js";
 import {
+  AnyLoader,
   CompilerContext,
   CompilerInstance,
   CompilerOptions,
-  Loader,
+  Hook,
+  HookHandler,
+  LoaderInput,
   LoaderOptions,
   LoaderRule,
+  Module,
   ModuleCacheItem,
   ModuleCacheMap,
   ModuleRuleUseConfig,
   ResolvedLoaderRule,
+  toError,
 } from "../types.js";
 
-const loaderMap: Record<string, Loader> = {
+const loaderMap: Record<string, AnyLoader> = {
   "file-loader": FileLoader,
   "ui-loader": UILoader,
   "css-loader": CSSLoader,
@@ -37,7 +42,7 @@ const loaderMap: Record<string, Loader> = {
 
 function getDirs() {
   const rootContext = resolveRootDir();
-  const mkdir = (dirPath) => {
+  const mkdir = (dirPath: string): string => {
     if (!fs.existsSync(dirPath)) {
       fs.mkdirpSync(dirPath);
     }
@@ -54,7 +59,7 @@ function getDirs() {
   };
 }
 
-function resolveLoaders(config: ModuleRuleUseConfig) {
+function resolveLoaders(config: ModuleRuleUseConfig): ResolvedLoaderRule[] {
   let loaders: (LoaderRule | string)[];
 
   if (typeof config === "string") {
@@ -65,13 +70,16 @@ function resolveLoaders(config: ModuleRuleUseConfig) {
     loaders = [config];
   }
   return loaders.map((item) => {
-    let loader: Loader;
+    let loader: AnyLoader | undefined;
     let options: LoaderOptions = {};
 
     if (typeof item === "string") {
       loader = loaderMap[item];
     } else if (typeof item.loader === "string") {
       loader = loaderMap[item.loader];
+      options = item.options || {};
+    } else {
+      loader = item.loader;
       options = item.options || {};
     }
     if (!loader) {
@@ -81,23 +89,21 @@ function resolveLoaders(config: ModuleRuleUseConfig) {
   });
 }
 
-function resolveModuleExt(modulePath) {
+function resolveModuleExt(modulePath: string): string {
   const { dir, name, ext } = path.parse(modulePath);
   const newExt = compilerConfig.resolve.extensions.includes(ext) ? "" : ext;
   return path.join(dir, `${name}${newExt}.mjs`);
 }
 
-function isNodeModulePath(name) {
+function isNodeModulePath(name: string): boolean {
   const { root, dir } = path.parse(name.replace(/\\|\//g, "/"));
   return !root && dir !== "." && dir !== ".." && !dir.startsWith(`./`) && !dir.startsWith(`../`);
 }
 
 /**
  * 确定模块的引入路径
- * @param {string} name
- * @param {CompilerContext} context
  */
-function resolveModuleImportPath(name, context) {
+function resolveModuleImportPath(name: string, context: CompilerContext): string {
   if (!name.startsWith(context.rootContext) && isNodeModulePath(name)) {
     const { dir, ext } = path.parse(name);
     // 对于直接引入包名的，不做进一步解析，由 Node.js 确定模块文件路径
@@ -111,10 +117,8 @@ function resolveModuleImportPath(name, context) {
 
 /**
  * 确定模块路径
- * @param {string} name
- * @param {CompilerContext} context
  */
-function resolveModuleOutputPath(name, context) {
+function resolveModuleOutputPath(name: string, context: CompilerContext): string {
   let fullPath = name;
   if (!name.startsWith(context.rootContext) && isNodeModulePath(name)) {
     const { dir, ext } = path.parse(name);
@@ -143,14 +147,15 @@ function resolveModuleOutputPath(name, context) {
   return outputPath;
 }
 
-function createLogger(logFile, verbose) {
+function createLogger(logFile: string, verbose: boolean | undefined): winston.Logger {
   const levelKey = Symbol.for("level");
   const fmt = winston.format;
   const logFormatter = fmt.printf((info) => {
-    if (info[levelKey] === "info" || info[levelKey] === "debug") {
-      return info.message;
+    const level = (info as unknown as Record<symbol, string>)[levelKey];
+    if (level === "info" || level === "debug") {
+      return info.message as string;
     }
-    return `${info.level}: ${info.message}`;
+    return `${info.level}: ${info.message as string}`;
   });
   return winston.createLogger({
     level: verbose ? "debug" : "info",
@@ -176,22 +181,21 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
   const logFile = path.join(options.buildDir, "compile.log");
   const logger = createLogger(logFile, options.verbose);
 
-  function createHook() {
-    const taps = [];
+  function createHook<Args extends unknown[]>(): Hook<Args> {
+    const taps: { name: string; fn: HookHandler<Args> }[] = [];
     return {
       tap(name, fn) {
         taps.push({ name, fn });
       },
-      async call(...args) {
+      async call(...args: Args) {
         await Promise.all(
           taps.map(async ({ name, fn }) => {
             try {
               await fn(...args);
             } catch (err) {
-              logger.error(
-                `in ${name}:\n${err instanceof Error ? `${err.message}\n${err.stack}` : err}`
-              );
-              throw err;
+              const e = toError(err);
+              logger.error(`in ${name}:\n${e.message}\n${e.stack ?? ""}`);
+              throw e;
             }
           })
         );
@@ -203,8 +207,8 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     options,
     logger,
     hooks: {
-      loadModule: createHook(),
-      done: createHook(),
+      loadModule: createHook<[string, Record<string, unknown>]>(),
+      done: createHook<[]>(),
     },
   };
 
@@ -223,51 +227,59 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
   function useModuleCache(modulePath: string, context: CompilerContext): ModuleCacheItem {
     const outputPath = resolveModuleOutputPath(modulePath, context);
     const outputDirPath = path.dirname(outputPath);
-    let cache = moduleCacheMap[outputPath];
-    if (cache) {
-      return cache;
+    const existing = moduleCacheMap[outputPath];
+    if (existing) {
+      return existing;
     }
     if (outputDirPath.startsWith(context.buildDir) && !fs.existsSync(outputDirPath)) {
       fs.mkdirpSync(outputDirPath);
     }
-    cache = {
-      state: "pending",
-      outputPath,
-      exports: null,
-      resolve: null,
-      reject: null,
-    };
-    moduleCacheMap[outputPath] = cache;
-    cache.exports = new Promise((resolve, reject) => {
-      cache.resolve = (exports) => {
+    // 构造 cache 时同时初始化好 exports/resolve/reject，避免任何中间 null 状态。
+    let resolveFn!: (exports: Module) => void;
+    let rejectFn!: (err: Error) => void;
+    const exports = new Promise<Module>((resolve, reject) => {
+      resolveFn = (m) => {
         cache.state = "loaded";
-        resolve(exports);
+        resolve(m);
       };
-      cache.reject = (err) => {
+      rejectFn = (e) => {
         cache.state = "loaded";
-        reject(err);
+        reject(e);
       };
     });
+    const cache: ModuleCacheItem = {
+      state: "pending",
+      outputPath,
+      exports,
+      resolve: resolveFn,
+      reject: rejectFn,
+    };
+    moduleCacheMap[outputPath] = cache;
     return cache;
   }
 
-  async function generateModule(modulePath, moduleGenerator, context) {
+  async function generateModule(
+    modulePath: string,
+    moduleGenerator: () => string | Buffer | Promise<string | Buffer>,
+    context: CompilerContext
+  ): Promise<void> {
     const cache = useModuleCache(modulePath, context);
     context.logger.debug(`Generating ${path.relative(context.rootContext, cache.outputPath)}`);
     try {
       const content = await moduleGenerator();
       fs.writeFileSync(cache.outputPath, content);
-      cache.resolve(await import(`file://${cache.outputPath}`));
+      cache.resolve((await import(`file://${cache.outputPath}`)) as Module);
     } catch (err) {
-      printError(modulePath, err);
-      cache.reject(err);
+      const e = toError(err);
+      printError(modulePath, e);
+      cache.reject(e);
     }
   }
 
   async function loadModule(resourcePath: string, loaders: ResolvedLoaderRule[]) {
-    const data = {};
+    const data: Record<string, unknown> = {};
     const context = createCompilerContext(resourcePath);
-    const content = await loaders.reduceRight(
+    const content: LoaderInput = await loaders.reduceRight<Promise<LoaderInput>>(
       async (inputPromise, config) => {
         const input = await inputPromise;
         try {
@@ -276,24 +288,25 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
               {
                 ...context,
                 data,
-                getOptions() {
-                  return config.options;
+                getOptions<T = LoaderOptions>(): T {
+                  return config.options as unknown as T;
                 },
               },
               input
             );
           })();
         } catch (err) {
+          const e = toError(err);
           context.emitError(
-            `ModuleLoaderError (from ${config.loader.name}): ${err.message}\n${err.stack}`
+            `ModuleLoaderError (from ${config.loader.name}): ${e.message}\n${e.stack ?? ""}`
           );
-          err.isReported = true;
-          throw err;
+          e.isReported = true;
+          throw e;
         }
       },
       Promise.resolve(fs.readFileSync(resourcePath))
     );
-    compiler.hooks.loadModule.call(resourcePath, data);
+    await compiler.hooks.loadModule.call(resourcePath, data);
     return {
       content,
       resourceOutputPath: context.resourceOutputPath,
@@ -304,7 +317,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     resourcePath: string,
     loaders: ResolvedLoaderRule[],
     context: CompilerContext
-  ) {
+  ): Promise<Module> {
     const resolvedPath = resolveModuleImportPath(resourcePath, context);
     const cache = useModuleCache(resolvedPath, context);
 
@@ -332,20 +345,26 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
         context.logger.debug(
           `Generating ${path.relative(context.rootContext, result.resourceOutputPath)}`
         );
-        fs.writeFileSync(result.resourceOutputPath, result.content);
+        // loader 链最终产物应是 string 或 Buffer 才能写盘；
+        // 当前 LoaderInput 也允许 ResourceNode / object，运行时若真出现这种非序列化形态
+        // 将由 fs.writeFileSync 自身抛错，保留原行为。
+        // TODO: 考虑在此显式 narrow 并给出更明确的错误信息，或在 loader 链规范上强制末端为 string|Buffer。
+        const writable = result.content as string | NodeJS.ArrayBufferView;
+        fs.writeFileSync(result.resourceOutputPath, writable);
       }
-      cache.resolve(await import(`file://${cache.outputPath}`));
+      cache.resolve((await import(`file://${cache.outputPath}`)) as Module);
     } catch (err) {
-      if (!err.isReported) {
-        context.emitError(err);
+      const e = toError(err);
+      if (!e.isReported) {
+        context.emitError(e);
       }
-      cache.reject(err);
-      throw err;
+      cache.reject(e);
+      throw e;
     }
     return cache.exports;
   }
 
-  function createCompilerContext(resourcePath: string) {
+  function createCompilerContext(resourcePath: string): CompilerContext {
     let outputPath = resourcePath;
     if (resourcePath.startsWith(options.modulesDir)) {
       outputPath = path.join(
@@ -408,7 +427,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     return resolveLoaders(matchedRule.use);
   }
 
-  async function compileFile(filePath: string) {
+  async function compileFile(filePath: string): Promise<unknown> {
     if (fs.statSync(filePath).isDirectory()) {
       return Promise.all(
         fs.readdirSync(filePath).map((name) => compileFile(path.join(filePath, name)))
@@ -418,6 +437,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     if (loaders.length > 0) {
       await importModule(filePath, loaders, createCompilerContext(filePath));
     }
+    return undefined;
   }
 
   try {
@@ -434,11 +454,12 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
         await compileFile(options.sourceDir);
       }
     }
-    compiler.hooks.done.call();
+    await compiler.hooks.done.call();
     logger.info("Compilation completed!");
   } catch (err) {
     logger.error("Compilation failed!");
     logger.error(`For more details, please refer to the log file: ${logFile}`);
+    void err;
     throw new Error("Compilation failed!");
   }
 }
