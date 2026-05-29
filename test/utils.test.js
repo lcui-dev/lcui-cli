@@ -1,47 +1,6 @@
 import assert from "assert";
 import path from "path";
-import { snakeCase } from "change-case-all";
-import {
-  stripCommonDirPrefixes,
-  parsePageRoute,
-} from "../lib/utils.js";
-
-describe("stripCommonDirPrefixes", () => {
-  it('should remove leading "app" prefix', () => {
-    assert.strictEqual(stripCommonDirPrefixes("app_home"), "home");
-  });
-
-  it('should remove leading "src" prefix', () => {
-    assert.strictEqual(stripCommonDirPrefixes("src_button"), "button");
-  });
-
-  it("should remove multiple consecutive leading common prefixes", () => {
-    assert.strictEqual(stripCommonDirPrefixes("app_src_button"), "button");
-  });
-
-  it('should preserve single-word name "app" (no underscore)', () => {
-    assert.strictEqual(stripCommonDirPrefixes("app"), "app");
-  });
-
-  it('should preserve single-word name "src" (no underscore)', () => {
-    assert.strictEqual(stripCommonDirPrefixes("src"), "src");
-  });
-
-  it("should not strip non-common prefixes", () => {
-    assert.strictEqual(stripCommonDirPrefixes("home"), "home");
-    assert.strictEqual(
-      stripCommonDirPrefixes("settings_profile"),
-      "settings_profile"
-    );
-  });
-
-  it("should strip common prefix but keep the rest intact", () => {
-    assert.strictEqual(
-      stripCommonDirPrefixes("app_settings_profile"),
-      "settings_profile"
-    );
-  });
-});
+import { parsePageRoute } from "../lib/utils.js";
 
 describe("parsePageRoute", () => {
   const appDir = path.join("/", "project", "app");
@@ -79,55 +38,52 @@ describe("parsePageRoute", () => {
     );
     assert.strictEqual(result.ident, "settings_page");
   });
-});
 
-describe("component naming: parsePageRoute + snakeCase + stripCommonDirPrefixes", () => {
-  function getComponentName(appDir, filePath) {
-    const ident = parsePageRoute(appDir, filePath).ident;
-    return stripCommonDirPrefixes(snakeCase(ident));
-  }
-
-  const appDir = path.join("/", "project", "app");
-
-  it('app/home.tsx should produce "root_home"', () => {
-    assert.strictEqual(
-      getComponentName(appDir, path.join(appDir, "home.tsx")),
-      "root_home"
+  it('app/components/page.tsx should keep dir prefix → "components_page"', () => {
+    const result = parsePageRoute(
+      appDir,
+      path.join(appDir, "components", "page.tsx")
     );
+    assert.strictEqual(result.ident, "components_page");
   });
 
-  it('app/page.tsx should produce "root_page"', () => {
-    assert.strictEqual(
-      getComponentName(appDir, path.join(appDir, "page.tsx")),
-      "root_page"
+  it('app/components/button.tsx should strip "components" → "button"', () => {
+    const result = parsePageRoute(
+      appDir,
+      path.join(appDir, "components", "button.tsx")
     );
+    assert.strictEqual(result.ident, "button");
   });
 
-  it('app/settings/profile.tsx should produce "settings_profile"', () => {
-    assert.strictEqual(
-      getComponentName(appDir, path.join(appDir, "settings", "profile.tsx")),
-      "settings_profile"
+  it('app/chat/components/message.tsx should strip "components" → "chat_message"', () => {
+    const result = parsePageRoute(
+      appDir,
+      path.join(appDir, "chat", "components", "message.tsx")
     );
+    assert.strictEqual(result.ident, "chat_message");
   });
 
-  it('app/settings/page.tsx should produce "settings_page"', () => {
-    assert.strictEqual(
-      getComponentName(appDir, path.join(appDir, "settings", "page.tsx")),
-      "settings_page"
+  it('app/widgets/page.tsx should keep dir prefix → "widgets_page"', () => {
+    const result = parsePageRoute(
+      appDir,
+      path.join(appDir, "widgets", "page.tsx")
     );
+    assert.strictEqual(result.ident, "widgets_page");
   });
 
-  it('app/app/home.tsx (nested "app" subdir) should strip leading "app" prefix to produce "home"', () => {
-    assert.strictEqual(
-      getComponentName(appDir, path.join(appDir, "app", "home.tsx")),
-      "home"
+  it('app/widgets/button.tsx should strip "widgets" → "button"', () => {
+    const result = parsePageRoute(
+      appDir,
+      path.join(appDir, "widgets", "button.tsx")
     );
+    assert.strictEqual(result.ident, "button");
   });
 
-  it('app/src/button.tsx (nested "src" subdir) should strip leading "src" prefix to produce "button"', () => {
-    assert.strictEqual(
-      getComponentName(appDir, path.join(appDir, "src", "button.tsx")),
-      "button"
+  it('app/chat/widgets/message.tsx should strip "widgets" → "chat_message"', () => {
+    const result = parsePageRoute(
+      appDir,
+      path.join(appDir, "chat", "widgets", "message.tsx")
     );
+    assert.strictEqual(result.ident, "chat_message");
   });
 });

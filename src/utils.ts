@@ -15,24 +15,25 @@ export function getResourceLoaderName(
   return `ui_load_${ident}_resources`;
 }
 
-const COMMON_DIR_PREFIXES = ['app', 'src'];
-
-export function stripCommonDirPrefixes(name: string): string {
-  const parts = name.split('_');
-  while (parts.length > 1 && COMMON_DIR_PREFIXES.includes(parts[0])) {
-    parts.shift();
-  }
-  return parts.join('_');
-}
+const COMPONENT_DIRS = new Set(['components', 'widgets']);
 
 export function parsePageRoute(context: string, filePath: string) {
   const { dir, name } = path.parse(path.relative(context, filePath));
+  const dirParts = dir ? dir.split(path.sep) : [];
+  const isPageOrLayout = name === 'page' || name === 'layout';
+  let ident: string;
+  if (!isPageOrLayout && dirParts.some(p => COMPONENT_DIRS.has(p))) {
+    const stripped = dirParts.filter(p => !COMPONENT_DIRS.has(p));
+    ident = stripped.length > 0
+      ? toIdent(`${stripped.join(path.sep)}_${name}`)
+      : name;
+  } else {
+    ident = toIdent(`${dir || 'root'}_${name}`);
+  }
   // Convert path, e.g. "/[foo]/bar" to "/:foo/bar"
   return {
-    path: `/${dir
-      .replaceAll(path.win32.sep, "/")
-      .replace(/\[([^\]]+)\]/g, ":$1")}`,
-    ident: toIdent(`${dir || "root"}_${name}`),
+    path: `/${dir.replaceAll(path.win32.sep, '/').replace(/\[([^\]]+)\]/g, ":$1")}`,
+    ident,
   };
 }
 
