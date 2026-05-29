@@ -8,6 +8,10 @@ export function runXMake({ logger, options }: CompilerInstance) {
   if (!fs.existsSync(configFile)) {
     return;
   }
-  logger.info('Run xmake to build the project...')
-  spawnSync("xmake", ["-y"], { cwd: options.rootContext, stdio: "inherit" });
+  logger.info("Run xmake to build the project...");
+  spawnSync(
+    "xmake",
+    ["-y", "-P", "."],
+    { cwd: options.rootContext, stdio: "inherit" },
+  );
 }
