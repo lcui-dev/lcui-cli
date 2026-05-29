@@ -12,7 +12,8 @@
   ],
   "types": "./lib/types.d.ts",
   "scripts": {
-    "test": "echo \"no test specified\"",
+    "build": "tsc",
+    "test": "mocha 'test/**/*.test.js'",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "version": "yarn tsc && yarn changelog && git add CHANGELOG.md"
   },
