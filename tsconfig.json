@@ -4,6 +4,7 @@
     "jsx": "react",
     "module": "NodeNext",
     "declaration": true,
+    "rootDir": "./src",
     "outDir": "./lib",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
