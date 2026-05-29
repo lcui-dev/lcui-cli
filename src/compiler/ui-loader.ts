@@ -254,7 +254,7 @@ async function compile(
               }
               return `ui_widget_set_style_string(${ident}), "${toDashCase(
                 key
-              )}", "${value}");`;
+              )}", ${JSON.stringify(value)});`;
             })
           );
           break;
