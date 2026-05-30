@@ -9,10 +9,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@lcui/react@workspace:."
   dependencies:
-    "@types/react": "npm:^18.2.23"
+    "@types/react": "npm:^18.3.29"
     change-case-all: "npm:^2.1.0"
     react: "npm:^18.2.0"
-    typescript: "npm:^5.4.2"
+    typescript: "npm:^6.0.3"
   peerDependencies:
     react: ^18.2.0
   languageName: unknown
@@ -25,21 +25,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^18.2.23":
-  version: 18.2.23
-  resolution: "@types/react@npm:18.2.23"
+"@types/react@npm:^18.3.29":
+  version: 18.3.29
+  resolution: "@types/react@npm:18.3.29"
   dependencies:
     "@types/prop-types": "npm:*"
-    "@types/scheduler": "npm:*"
-    csstype: "npm:^3.0.2"
-  checksum: 10c0/6bb169b4ad86d0824493a147d2503f93e528423ada27494d6478da109c830757e0c3b6681b22ee3641fbf1ca5d99c5e3cced73e07c50b1811e79de8bc9b1a19e
-  languageName: node
-  linkType: hard
-
-"@types/scheduler@npm:*":
-  version: 0.16.4
-  resolution: "@types/scheduler@npm:0.16.4"
-  checksum: 10c0/2355e63251c6c6467806c9e7085f5fad350a1e87f811cf416f1e48a888b7da4ecc4bae2b67b7b10d8f5e518305ef2b5d4a8451227158552942794b87be43c5dd
+    csstype: "npm:^3.2.2"
+  checksum: 10c0/b582f5c3a034229b2e287f5e39aebf3988d6ce79e7fd81c8257dc55bee0e321ddf708d6014a44c5ceae8debea1e15a93326b207a4fec6a0170200a03d105adfb
   languageName: node
   linkType: hard
 
@@ -62,10 +54,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csstype@npm:^3.0.2":
-  version: 3.1.2
-  resolution: "csstype@npm:3.1.2"
-  checksum: 10c0/32c038af259897c807ac738d9eab16b3d86747c72b09d5c740978e06f067f9b7b1737e1b75e407c7ab1fe1543dc95f20e202b4786aeb1b8d3bdf5d5ce655e6c6
+"csstype@npm:^3.2.2":
+  version: 3.2.3
+  resolution: "csstype@npm:3.2.3"
+  checksum: 10c0/cd29c51e70fa822f1cecd8641a1445bed7063697469d35633b516e60fe8c1bde04b08f6c5b6022136bb669b64c63d4173af54864510fbb4ee23281801841a3ce
   languageName: node
   linkType: hard
 
@@ -126,22 +118,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.4.2":
-  version: 5.4.2
-  resolution: "typescript@npm:5.4.2"
+"typescript@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "typescript@npm:6.0.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/583ff68cafb0c076695f72d61df6feee71689568179fb0d3a4834dac343df6b6ed7cf7b6f6c801fa52d43cd1d324e2f2d8ae4497b09f9e6cfe3d80a6d6c9ca52
+  checksum: 10c0/4a25ff5045b984370f48f196b3a0120779b1b343d40b9a68d114ea5e5fff099809b2bb777576991a63a5cd59cf7bffd96ff6fe10afcefbcb8bd6fb96ad4b6606
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.4.2#optional!builtin<compat/typescript>":
-  version: 5.4.2
-  resolution: "typescript@patch:typescript@npm%3A5.4.2#optional!builtin<compat/typescript>::version=5.4.2&hash=5adc0c"
+"typescript@patch:typescript@npm%3A^6.0.3#optional!builtin<compat/typescript>":
+  version: 6.0.3
+  resolution: "typescript@patch:typescript@npm%3A6.0.3#optional!builtin<compat/typescript>::version=6.0.3&hash=5786d5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/fcf6658073d07283910d9a0e04b1d5d0ebc822c04dbb7abdd74c3151c7aa92fcddbac7d799404e358197222006ccdc4c0db219d223d2ee4ccd9e2b01333b49be
+  checksum: 10c0/2f25c74e65663c248fa1ade2b8459d9ce5372ff9dad07067310f132966ebec1d93f6c42f0baf77a6b6a7a91460463f708e6887013aaade22111037457c6b25df
   languageName: node
   linkType: hard
