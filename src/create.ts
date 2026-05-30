@@ -2,7 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 import chalk from "chalk";
 import { simpleGit } from "simple-git";
-import { osLocaleSync } from "os-locale";
+import osLocale from "os-locale";
 import { execSync } from "child_process";
 
 interface LocaleMessages {
@@ -115,6 +115,6 @@ class Creator {
 }
 
 export async function create(name: string) {
-  const locale = await osLocaleSync();
+  const locale = osLocale();
   return new Creator({ name, locale }).run();
 }
