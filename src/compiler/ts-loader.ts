@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { pathToFileURL } from "url";
 import ts from "typescript";
 import React from "react";
 import { snakeCase } from "change-case-all";
@@ -81,7 +82,9 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
   }
 
   const { compile } = await import(
-    `file://${path.join(loader.modulesDir, "@lcui", "react", "lib", "index.js")}`
+    pathToFileURL(
+      path.join(loader.modulesDir, "@lcui", "react", "lib", "index.js")
+    ).href
   );
   const options = this.getOptions();
   const { dir, name, base } = path.parse(loader.resourcePath);

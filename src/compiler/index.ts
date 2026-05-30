@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
+import { pathToFileURL } from "url";
 import winston from "winston";
 import compilerConfig from "./config.js";
 import CSSLoader from "./css-loader.js";
@@ -224,6 +225,68 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     );
   }
 
+  /**
+   * 从已生成的 .mjs 中挑出"可疑"的 import 路径——尤其是裸 Windows 绝对路径
+   * （形如 `X:/...`），它们会触发 ERR_UNSUPPORTED_ESM_URL_SCHEME。
+   * 仅用于诊断输出，失败时静默返回 []。
+   */
+  function collectSuspiciousImports(modulePath: string): string[] {
+    try {
+      if (!fs.existsSync(modulePath)) return [];
+      const src = fs.readFileSync(modulePath, "utf8");
+      const out: string[] = [];
+      const lines = src.split(/\r?\n/);
+      const specRe = /(?:from|import)\s*\(?\s*["']([^"']+)["']/g;
+      lines.forEach((line, idx) => {
+        let m: RegExpExecArray | null;
+        specRe.lastIndex = 0;
+        while ((m = specRe.exec(line))) {
+          const spec = m[1];
+          // 裸 Windows 绝对路径，如 F:/... 或 F:\...
+          if (/^[a-zA-Z]:[\\/]/.test(spec)) {
+            out.push(`  line ${idx + 1}: ${line.trim()}`);
+          }
+        }
+      });
+      return out;
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * 把动态 import 抛出的底层错误包成"带定位信息"的错误：
+   *   - 源 TSX / 资源文件路径
+   *   - 生成的 .mjs 产物路径
+   *   - 可疑 import 行（仅当能识别到时）
+   *   - 原始 cause stack
+   * 这样 logger 至少能把问题落到本项目文件上，而不仅仅是 Node ESM 内部栈。
+   */
+  function wrapImportError(
+    sourcePath: string,
+    outputPath: string,
+    cause: Error
+  ): Error {
+    const suspicious = collectSuspiciousImports(outputPath);
+    const parts: string[] = [
+      `Failed to import compiled module`,
+      `  source : ${sourcePath}`,
+      `  output : ${outputPath}`,
+      `  reason : ${cause.message}`,
+    ];
+    if (suspicious.length > 0) {
+      parts.push(
+        `  suspicious imports (bare Windows absolute paths trigger ERR_UNSUPPORTED_ESM_URL_SCHEME):`
+      );
+      parts.push(...suspicious);
+    }
+    const wrapped = new Error(parts.join("\n"));
+    wrapped.stack = `${wrapped.message}\n--- cause stack ---\n${cause.stack ?? "(no stack)"}`;
+    // 保留 isReported 语义，避免上层重复 emitError
+    wrapped.isReported = cause.isReported;
+    return wrapped;
+  }
+
   function useModuleCache(modulePath: string, context: CompilerContext): ModuleCacheItem {
     const outputPath = resolveModuleOutputPath(modulePath, context);
     const outputDirPath = path.dirname(outputPath);
@@ -268,7 +331,17 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     try {
       const content = await moduleGenerator();
       fs.writeFileSync(cache.outputPath, content);
-      cache.resolve((await import(`file://${cache.outputPath}`)) as Module);
+      try {
+        cache.resolve(
+          (await import(pathToFileURL(cache.outputPath).href)) as Module
+        );
+      } catch (importErr) {
+        const ie = toError(importErr);
+        const wrapped = wrapImportError(modulePath, cache.outputPath, ie);
+        printError(modulePath, wrapped);
+        wrapped.isReported = true;
+        cache.reject(wrapped);
+      }
     } catch (err) {
       const e = toError(err);
       printError(modulePath, e);
@@ -352,11 +425,19 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
         const writable = result.content as string | NodeJS.ArrayBufferView;
         fs.writeFileSync(result.resourceOutputPath, writable);
       }
-      cache.resolve((await import(`file://${cache.outputPath}`)) as Module);
+      try {
+        cache.resolve(
+          (await import(pathToFileURL(cache.outputPath).href)) as Module
+        );
+      } catch (importErr) {
+        const ie = toError(importErr);
+        throw wrapImportError(resolvedPath, cache.outputPath, ie);
+      }
     } catch (err) {
       const e = toError(err);
       if (!e.isReported) {
         context.emitError(e);
+        e.isReported = true;
       }
       cache.reject(e);
       throw e;

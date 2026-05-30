@@ -1,4 +1,5 @@
 import path from "path";
+import { pathToFileURL } from "url";
 import * as sass from "sass";
 import fs from "fs-extra";
 import { Loader, LoaderContext } from "../types.js";
@@ -20,7 +21,7 @@ const SassLoader: Loader<string | Buffer, string> = function SassLoader(
           path.join(parsedUrl.dir, `_${parsedUrl.base}${ext}`),
           path.join(resolvedUrl, `index${ext}`),
         ].find((item) => fs.existsSync(item) && fs.statSync(item).isFile());
-        return result ? new URL(`file://${result}`) : null;
+        return result ? pathToFileURL(result) : null;
       },
     },
   });
