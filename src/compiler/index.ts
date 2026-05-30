@@ -102,6 +102,27 @@ function isNodeModulePath(name: string): boolean {
 }
 
 /**
+ * 将绝对路径"摊平"为不含 `..`、不含盘符冒号的安全相对段，
+ * 用于把项目外的文件收容到 buildDir 内的 [external] 子目录。
+ *
+ * - Windows 盘符统一大写，避免同一文件因大小写不同被视作两个模块。
+ * - UNC 路径（\\server\share\...）暂按 server/share/... 摊平。
+ */
+function flattenAbsolutePath(p: string): string {
+  const norm = p.replace(/\\/g, "/");
+  const drive = /^([a-zA-Z]):(.*)$/.exec(norm);
+  if (drive) {
+    return `${drive[1].toUpperCase()}/${drive[2].replace(/^\/+/, "")}`;
+  }
+  // UNC: //server/share/...
+  if (norm.startsWith("//")) {
+    return norm.replace(/^\/+/, "");
+  }
+  // POSIX: /foo/bar
+  return norm.replace(/^\/+/, "");
+}
+
+/**
  * 确定模块的引入路径
  */
 function resolveModuleImportPath(name: string, context: CompilerContext): string {
@@ -138,9 +159,17 @@ function resolveModuleOutputPath(name: string, context: CompilerContext): string
     throw new Error(`${name}: File does not exist`);
   }
   const modulesPath = path.join(context.buildDir, "node_modules");
-  const outputPath = resolveModuleExt(
-    path.join(context.buildDir, path.relative(context.rootContext, resolvedPath))
-  );
+  const rel = path.relative(context.rootContext, resolvedPath);
+
+  // 项目外文件（相对路径以 .. 开头，或在 Windows 下跨盘 path.relative 返回绝对路径）
+  // 统一收容到 buildDir/[external]/ 下，避免把 .mjs 产物写到项目目录之外。
+  if (rel.startsWith("..") || path.isAbsolute(rel)) {
+    return resolveModuleExt(
+      path.join(context.buildDir, "[external]", flattenAbsolutePath(resolvedPath))
+    );
+  }
+
+  const outputPath = resolveModuleExt(path.join(context.buildDir, rel));
   // 更改路径，避免 import 语句中的模块路径被解析到构建目录中的 node_modules
   if (outputPath.startsWith(modulesPath)) {
     return path.join(context.buildDir, "[modules]", outputPath.substring(modulesPath.length));
@@ -281,7 +310,9 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
       parts.push(...suspicious);
     }
     const wrapped = new Error(parts.join("\n"));
-    wrapped.stack = `${wrapped.message}\n--- cause stack ---\n${cause.stack ?? "(no stack)"}`;
+    // 不把 wrapped.message 前置到 stack 里。printError 会单独打印 message 与
+    // stack；若 stack 中再包含 message，控制台会出现内容重复。
+    wrapped.stack = `--- cause stack ---\n${cause.stack ?? "(no stack)"}`;
     // 保留 isReported 语义，避免上层重复 emitError
     wrapped.isReported = cause.isReported;
     return wrapped;

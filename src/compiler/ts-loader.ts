@@ -22,17 +22,28 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
       function visitor(node: ts.Node): ts.Node {
         if (ts.isImportDeclaration(node)) {
           const importPath = node.moduleSpecifier.getText(sourceFile).slice(1, -1);
-          let modulePath = loader.resolveModule(importPath);
+          const modulePath = loader.resolveModule(importPath);
           modules.push(loader.importModule(importPath));
-          if (modulePath.startsWith(loader.buildDir)) {
-            modulePath = path.relative(outputDirPath, modulePath);
-            modulePath = `.${path.sep}${modulePath}`;
+
+          // 所有绝对路径一律转成相对路径写入 .mjs，避免出现裸 Windows
+          // 盘符（如 F:/...）触发 ERR_UNSUPPORTED_ESM_URL_SCHEME。
+          // 裸模块名（如 "react"）不是绝对路径，保留原样交给 Node 解析。
+          let rewritten: string;
+          if (path.isAbsolute(modulePath)) {
+            let rel = path.relative(outputDirPath, modulePath);
+            if (!rel.startsWith(".") && !rel.startsWith("..")) {
+              rel = `.${path.sep}${rel}`;
+            }
+            rewritten = rel.replace(/\\|\//g, "/");
+          } else {
+            rewritten = modulePath.replace(/\\|\//g, "/");
           }
+
           return ts.factory.updateImportDeclaration(
             node,
             node.modifiers,
             node.importClause,
-            ts.factory.createStringLiteral(modulePath.replace(/\\|\//g, "/")),
+            ts.factory.createStringLiteral(rewritten),
             node.attributes
           );
         }
