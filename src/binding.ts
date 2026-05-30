@@ -115,7 +115,7 @@ export type Binding<T = BindingMeta> = BindingBase<T> & {
 };
 export type ObjectBinding = Binding<ObjectBindingMeta>;
 
-const typeNameMap = {
+const typeNameMap: Partial<Record<CType, string>> = {
   [CType.Double]: "double",
   [CType.Size]: "size_t",
   [CType.Int]: "int",
@@ -137,9 +137,9 @@ export function getObjectTypeName(obj: ObjectBinding) {
   }
   switch (init.kind) {
     case SyntaxKind.NumericLiteral:
-      return typeNameMap[init.type];
+      return typeNameMap[init.type] || "unknown";
     case SyntaxKind.StringLiteral:
-      return typeNameMap[CType.String];
+      return typeNameMap[CType.String] || "char*";
     case SyntaxKind.NewExpression:
       return init.identifier;
     default:
@@ -330,13 +330,9 @@ function compileFunction({
   return [
     signature,
     "{",
-    formatFuncBody(
-      locals.map((item) => compiler.compileVariableDeclaration(item))
-    ),
+    formatFuncBody(locals.map((item) => compileVariableDeclaration(item))),
     formatFuncBody(body),
-    formatFuncBody(
-      locals.map((item) => compiler.compileObjectDestroyer(item.initializer))
-    ),
+    formatFuncBody(locals.map((item) => compileObjectDestroyer(item.initializer))),
     "}",
   ]
     .filter(Boolean)
@@ -347,7 +343,7 @@ function compileComponentMethod({
   ctx,
   name,
   args = "",
-  body = ctx.body,
+  body,
   thatId = "w",
 }: {
   ctx?: FunctionContext;
@@ -357,16 +353,17 @@ function compileComponentMethod({
   body?: string[];
 }) {
   const className = getComponentContext().name;
+  const methodBody = [
+    `${className}_react_t *_that = ui_widget_get_data(${thatId}, ${className}_proto)`,
+    ...(body || ctx?.body || []),
+    ctx?.hasStateOperation ? `${className}_react_update(${thatId})` : undefined,
+  ].filter((line): line is string => Boolean(line));
   return compileFunction({
     locals: ctx?.locals || [],
     signature: `static void ${className}_${
       name || ctx?.name || "unnamed_func"
     }(ui_widget_t *w${args})`,
-    body: [
-      `${className}_react_t *_that = ui_widget_get_data(${thatId}, ${className}_proto)`,
-      ...(body || []),
-      ctx?.hasStateOperation && `${className}_react_update(${thatId})`,
-    ],
+    body: methodBody,
   });
 }
 
@@ -492,8 +489,8 @@ export function pushFunctionComponent(ctx: FunctionContext) {
   contextList.push(ctx);
 }
 
-export function popFunctionComponent(ctx: FunctionContext) {
-  contextList.push(ctx);
+export function popFunctionComponent() {
+  contextList.pop();
 }
 
 export function setComponentContext(ctx: ComponentContext) {
@@ -515,13 +512,16 @@ function createStringLiteral(value: string | null = null): StringLiteral {
   };
 }
 
-function createBinding(meta: BindingMeta, data: Record<string, any> = {}) {
+function createBinding<T extends object>(
+  meta: BindingMeta,
+  data: T = {} as T
+) {
   const binding = new Proxy(
-    { __meta__: meta, ...data },
+    { __meta__: meta, ...data } as Record<string | symbol, unknown>,
     {
       get(target, p, receiver) {
         if (p in target) {
-          return target[p];
+          return Reflect.get(target, p, receiver);
         }
         if (typeof p !== "string") {
           return null;
@@ -533,7 +533,7 @@ function createBinding(meta: BindingMeta, data: Record<string, any> = {}) {
           name: p,
         });
       },
-      construct(target, args) {
+      construct(target: { __meta__: BindingMeta }, args) {
         if (target.__meta__.kind !== BindingKind.Object) {
           throw new SyntaxError("Module cannot be used as a constructor");
         }
@@ -542,28 +542,32 @@ function createBinding(meta: BindingMeta, data: Record<string, any> = {}) {
         }
         return createVariable(meta.name, args);
       },
-      apply(target: Binding, _thisArg, args) {
+      apply(target: { __meta__: BindingMeta }, _thisArg, args) {
         if (target.__meta__.kind === BindingKind.Module) {
           throw new SyntaxError("Module cannot be used as a function");
         }
         const ctx = getFunctionContext();
         ctx.body.push(
           compileCallExpression(
-            resolveBindingIdentify(target as ObjectBinding),
+            resolveBindingIdentify(target as unknown as ObjectBinding),
             args
           )
         );
+        return undefined;
       },
     }
-  ) as Binding;
+  ) as unknown as Binding & T;
   return binding;
 }
 
-function createObjectBinding(meta: Omit<ObjectBindingMeta, "kind">, data = {}) {
+function createObjectBinding<T extends object = {}>(
+  meta: Omit<ObjectBindingMeta, "kind">,
+  data: T = {} as T
+): ObjectBinding & T {
   return createBinding(
     { ...meta, kind: BindingKind.Object },
     data
-  ) as ObjectBinding;
+  ) as ObjectBinding & T;
 }
 
 export function isObjectBinding(val: any): val is ObjectBinding {

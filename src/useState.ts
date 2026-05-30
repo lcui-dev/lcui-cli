@@ -84,7 +84,7 @@ export default function useState(initialValue: Value, valueType?: CType) {
         value = factory.createStringBinding(stateCName, initialValue);
         break;
       case "number":
-        if (isNumericType(valueType)) {
+        if (valueType !== undefined && isNumericType(valueType)) {
           value = factory.createNumericBinding(
             stateCName,
             initialValue,
@@ -92,6 +92,7 @@ export default function useState(initialValue: Value, valueType?: CType) {
           );
           break;
         }
+        throw new SyntaxError(`Unsupported numeric CType: ${valueType}`);
       default:
         throw new SyntaxError(`Unsupported type: ${typeof initialValue}`);
     }

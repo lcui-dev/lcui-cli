@@ -7,6 +7,7 @@ import {
   getComponentContext,
   setComponentContext,
   isObjectBinding,
+  ObjectBinding,
   compiler,
 } from "./binding.js";
 import fmt from "./fmt.js";
@@ -25,18 +26,25 @@ function isElement(el: ReactElement): el is Element {
   return typeof el.type === "function";
 }
 
+interface Node {
+  type: string;
+  name: string;
+  text: string;
+  attributes: Record<string, any>;
+  children: Node[];
+  isRoot: boolean;
+}
+
 function createNode(name = "") {
   return {
     type: "element",
     name,
     text: "",
-    attributes: {} as Record<string, string>,
-    children: [],
+    attributes: {} as Record<string, any>,
+    children: [] as Node[],
     isRoot: false,
   };
 }
-
-type Node = ReturnType<typeof createNode>;
 
 function allocRef(ctx: ComponentContext, node: Node, prefix = "ref_") {
   if (node.isRoot) {
@@ -80,10 +88,10 @@ function transformNodeStyle(node: Node, style: Record<string, any>) {
   });
 }
 
-function transformNodeChildren(node: Node, rawChildren: ReactNode[]) {
+function transformNodeChildren(node: Node, rawChildren: ReactNode) {
   let isPureText = true;
   let needFormat = true;
-  const children = [];
+  const children: (string | ObjectBinding | ReactElement)[] = [];
 
   React.Children.forEach(rawChildren, (child) => {
     switch (typeof child) {
@@ -120,26 +128,28 @@ function transformNodeChildren(node: Node, rawChildren: ReactNode[]) {
     return;
   }
 
-  node.children = children.map((child) => {
-    if (typeof child === "string") {
-      return {
-        ...createNode("text"),
-        text: child,
-      };
-    }
-    if (isObjectBinding(child)) {
-      const str = fmt(child);
-      const childNode = createNode("text");
-      const ref = allocRef(ctx, childNode);
+  node.children = children
+    .map((child) => {
+      if (typeof child === "string") {
+        return {
+          ...createNode("text"),
+          text: child,
+        };
+      }
+      if (isObjectBinding(child)) {
+        const str = fmt(child);
+        const childNode = createNode("text");
+        const ref = allocRef(ctx, childNode);
 
-      ctx.body.push(`ui_widget_set_text(${ref.cName}, ${str.__meta__.name})`);
-      return childNode;
-    }
-    return transformReactNode(child);
-  });
+        ctx.body.push(`ui_widget_set_text(${ref.cName}, ${str.__meta__.name})`);
+        return childNode;
+      }
+      return transformReactNode(child);
+    })
+    .filter((n): n is Node => n !== undefined);
 }
 
-function transformReactNode(el: ReactNode, isRoot = false) {
+function transformReactNode(el: ReactNode, isRoot = false): Node | undefined {
   let node = createNode();
   node.isRoot = isRoot;
 
@@ -169,15 +179,16 @@ function transformReactNode(el: ReactNode, isRoot = false) {
     return;
   }
 
-  const attrMap = {
+  const props = el.props as Record<string, any>;
+  const attrMap: Record<string, string> = {
     className: "class",
     $ref: "ref",
   };
-  const handlerNames = [];
+  const handlerNames: string[] = [];
 
-  Object.keys(el.props).forEach((propKey) => {
+  Object.keys(props).forEach((propKey) => {
     let key = propKey;
-    let value = el.props[key];
+    let value = props[key];
 
     if (key in attrMap) {
       key = attrMap[key];
@@ -204,24 +215,19 @@ function transformReactNode(el: ReactNode, isRoot = false) {
       ref.current.type = typeof el.type === "string" ? el.type : el.type.name;
     }
   }
-  if (el.props.children) {
-    transformNodeChildren(node, el.props.children);
+  if (props.children) {
+    transformNodeChildren(node, props.children);
   }
-  if (el.props.style) {
-    if (typeof el.props.style !== "object") {
+  if (props.style) {
+    if (typeof props.style !== "object") {
       throw SyntaxError(
-        `The style attribute value must be an object, not ${typeof el.props
-          .style}`
+        `The style attribute value must be an object, not ${typeof props.style}`
       );
     }
-    transformNodeStyle(node, el.props.style);
+    transformNodeStyle(node, props.style);
   }
   handlerNames.forEach((name) => {
-    transformEventHandler(
-      node,
-      name.substring(2).toLocaleLowerCase(),
-      el.props[name]
-    );
+    transformEventHandler(node, name.substring(2).toLocaleLowerCase(), props[name]);
   });
   return node;
 }
@@ -296,18 +302,17 @@ export default function compile<T = {}>(
 
   setComponentContext(ctx);
 
-  let el: ReactElement;
-  switch (options?.target) {
-    case "AppRouter":
-      el = componentFunc({
-        ...props,
-        children: React.createElement(RouterView),
-      });
-      break;
-    default:
-      el = componentFunc(props);
-      break;
-  }
+  const el: ReactElement = (() => {
+    switch (options?.target) {
+      case "AppRouter":
+        return componentFunc({
+          ...props,
+          children: React.createElement(RouterView),
+        });
+      default:
+        return componentFunc(props);
+    }
+  })();
   const hasBaseType = el.type !== "div" && el.type !== Widget;
   return {
     name: options.name || ctx.name,

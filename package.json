@@ -13,9 +13,12 @@
     "types.d.ts"
   ],
   "scripts": {
-    "test": "echo \"no test specified\"",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "yarn test:unit",
+    "test:unit": "yarn build && node --test ./test/**/*.test.mjs",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "version": "npm run changelog && git add CHANGELOG.md"
+    "version": "yarn changelog && git add CHANGELOG.md"
   },
   "dependencies": {
     "change-case-all": "^2.1.0",
@@ -27,5 +30,6 @@
   "devDependencies": {
     "@types/react": "^18.2.23",
     "typescript": "^5.4.2"
-  }
+  },
+  "packageManager": "yarn@4.15.0"
 }

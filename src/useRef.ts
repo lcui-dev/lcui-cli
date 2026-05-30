@@ -3,6 +3,7 @@ import {
   factory,
   getComponentContext,
   getFunctionContext,
+  ObjectBinding,
   stringifyValue,
 } from "./binding.js";
 
@@ -14,7 +15,7 @@ class WidgetInstance {
     this.ident = ident;
   }
 
-  getTextInputValue() {
+  getTextInputValue(): ObjectBinding {
     const ctx = getFunctionContext();
     const str = factory.createStringVariable();
     const len = factory.createNumericVariable(
@@ -36,13 +37,13 @@ class WidgetInstance {
     return str;
   }
 
-  setTextInputValue(value: string) {
+  setTextInputValue(value: string | ObjectBinding) {
     const ctx = getFunctionContext();
     const str = stringifyValue(value);
-    ctx.body.push(`ui_textinput_set_text(${this.ident}, ${str.__meta__.name}`);
+    ctx.body.push(`ui_textinput_set_text(${this.ident}, ${str.__meta__.name})`);
   }
 
-  get value() {
+  get value(): ObjectBinding {
     switch (this.type) {
       case "textinput":
         return this.getTextInputValue();
@@ -52,7 +53,7 @@ class WidgetInstance {
     throw SyntaxError(`Unable to get value of ${this.type} type component`);
   }
 
-  set value(newValue: any) {
+  set value(newValue: string | ObjectBinding) {
     switch (this.type) {
       case "textinput":
         this.setTextInputValue(newValue);
@@ -64,7 +65,12 @@ class WidgetInstance {
   }
 }
 
-export default function useRef() {
+interface WidgetRefBinding {
+  name: string;
+  current: WidgetInstance;
+}
+
+export default function useRef(): ObjectBinding & WidgetRefBinding {
   const ctx = getComponentContext();
   const name = ctx.refNames[ctx.refs.length] || `ref_${ctx.refs.length}`;
   const cName = `_that->refs.${name}`;
@@ -72,14 +78,11 @@ export default function useRef() {
   ctx.refs.push(name);
   ctx.headerFiles.add('<stdlib.h>');
   ctx.headerFiles.add('<LCUI/widgets.h>');
-  return factory.createObjectBinding(
+  return factory.createObjectBinding<WidgetRefBinding>(
     {
       name: cName,
       type: CType.Object,
     },
     { name, current: new WidgetInstance(cName) }
-  ) as unknown as {
-    name: string;
-    current: WidgetInstance;
-  };
+  );
 }

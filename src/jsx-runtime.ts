@@ -5,13 +5,8 @@ import { ObjectBinding, isObjectBinding } from "./binding.js";
 type JSXFactor = (
   type: React.ElementType,
   props: Record<string, any>,
-  key?: string
+  key?: React.Key
 ) => React.ReactElement;
-
-declare module "react/jsx-runtime" {
-  export const jsx: JSXFactor;
-  export const jsxs: JSXFactor;
-}
 
 export function JSXObjectBinding({ value }: { value: ObjectBinding }) {
   return `[JSXObjectBinding ${value.__meta__.name}]`;
@@ -37,7 +32,11 @@ function transformElementProps(props: Record<string, any>) {
 }
 
 export const jsx: JSXFactor = (type, props, key) =>
-  rt.jsx(type, transformElementProps(props), key);
+  (rt as unknown as { jsx: JSXFactor }).jsx(type, transformElementProps(props), key);
 
 export const jsxs: JSXFactor = (type, props, key) =>
-  rt.jsxs(type, transformElementProps(props), key);
+  (rt as unknown as { jsxs: JSXFactor }).jsxs(
+    type,
+    transformElementProps(props),
+    key
+  );

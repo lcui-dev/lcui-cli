@@ -1,5 +1,6 @@
 import {
   CType,
+  ObjectBinding,
   Value,
   factory,
   getComponentContext,
@@ -7,7 +8,7 @@ import {
   stringifyValue,
 } from "./binding.js";
 
-export default function fmt(...args: Value[]) {
+export default function fmt(...args: Value[]): ObjectBinding {
   const component = getComponentContext();
   const ctx = getFunctionContext();
   const str = factory.createStringVariable();
