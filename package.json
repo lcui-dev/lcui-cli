@@ -50,6 +50,7 @@
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",
     "@commitlint/config-conventional": "^19.2.2",
+    "@lcui/react": "^0.5.0",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.12.11",
     "@types/postcss-url": "^10.0.4",
