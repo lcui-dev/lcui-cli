@@ -1,0 +1,17 @@
+# Force LF line endings for all text files on checkout, regardless of the
+# host's core.autocrlf setting. Prettier is configured with endOfLine: lf
+# (see .prettierrc.json), so without this Windows runners would fail
+# `prettier --check` after checkout converts files to CRLF.
+* text=auto eol=lf
+
+# Binary types — never normalize.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.ttf    binary
+*.woff   binary
+*.woff2  binary
+*.zip    binary
+*.tgz    binary
