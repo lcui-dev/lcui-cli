@@ -93,9 +93,7 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
   }
 
   const { compile } = await import(
-    pathToFileURL(
-      path.join(loader.modulesDir, "@lcui", "react", "lib", "index.js")
-    ).href
+    pathToFileURL(path.join(loader.modulesDir, "@lcui", "react", "lib", "index.js")).href
   );
   const options = this.getOptions();
   const { dir, name, base } = path.parse(loader.resourcePath);

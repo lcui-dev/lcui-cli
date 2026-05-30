@@ -291,11 +291,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
    *   - 原始 cause stack
    * 这样 logger 至少能把问题落到本项目文件上，而不仅仅是 Node ESM 内部栈。
    */
-  function wrapImportError(
-    sourcePath: string,
-    outputPath: string,
-    cause: Error
-  ): Error {
+  function wrapImportError(sourcePath: string, outputPath: string, cause: Error): Error {
     const suspicious = collectSuspiciousImports(outputPath);
     const parts: string[] = [
       `Failed to import compiled module`,
@@ -363,9 +359,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
       const content = await moduleGenerator();
       fs.writeFileSync(cache.outputPath, content);
       try {
-        cache.resolve(
-          (await import(pathToFileURL(cache.outputPath).href)) as Module
-        );
+        cache.resolve((await import(pathToFileURL(cache.outputPath).href)) as Module);
       } catch (importErr) {
         const ie = toError(importErr);
         const wrapped = wrapImportError(modulePath, cache.outputPath, ie);
@@ -457,9 +451,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
         fs.writeFileSync(result.resourceOutputPath, writable);
       }
       try {
-        cache.resolve(
-          (await import(pathToFileURL(cache.outputPath).href)) as Module
-        );
+        cache.resolve((await import(pathToFileURL(cache.outputPath).href)) as Module);
       } catch (importErr) {
         const ie = toError(importErr);
         throw wrapImportError(resolvedPath, cache.outputPath, ie);
