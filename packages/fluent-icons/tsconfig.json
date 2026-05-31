@@ -1,0 +1,14 @@
+{
+  "exclude": ["dist", "node_modules"],
+  "include": ["src"],
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "Node",
+    "declaration": true,
+    "checkJs": false,
+    "outDir": "dist",
+    "target": "ESNext",
+    "module": "ES6",
+    "jsx": "react"
+  }
+}

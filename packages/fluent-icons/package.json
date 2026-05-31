@@ -1,0 +1,30 @@
+{
+  "name": "@lcui/react-icons",
+  "version": "1.0.4",
+  "description": "An icon library for LCUI applications based on @fluentui/react-icons",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "convert": "node scripts/convert.js fonts",
+    "build": "npm run convert && tsc",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
+    "version": "npm run build && npm run changelog && git add CHANGELOG.md"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/lcui-dev/fluent-ui-system-icons.git"
+  },
+  "author": "Liu <lc-soft@live.cn>",
+  "license": "MIT",
+  "dependencies": {
+    "@lcui/react": "^0.5.0"
+  },
+  "devDependencies": {
+    "react": "^18.2.0",
+    "typescript": "^5.2.2"
+  },
+  "peerDependencies": {
+    "@lcui/react": "^0.5.0"
+  }
+}

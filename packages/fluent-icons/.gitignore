@@ -1,0 +1,5 @@
+node_modules
+fonts
+dist
+src
+*.log
