@@ -22,7 +22,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build -w @lcui/react && npm run build -w @lcui/fluent-icons && npm run build -w @lcui/cli",
     "test": "npm run test --workspaces --if-present",
     "lint": "eslint . --ext .js,.cjs,.mjs,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.cjs,.mjs,.ts,.tsx --fix",
