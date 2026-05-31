@@ -54,7 +54,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "npm run build && node --test ./test/**/*.test.mjs"
+    "test": "npm run build && node --test"
   },
   "repository": {
     "type": "git",
