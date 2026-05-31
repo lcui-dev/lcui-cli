@@ -1,0 +1,35 @@
+{
+  "name": "@lcui/react",
+  "version": "0.5.0",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": "https://gitee.com/lcui-dev/react",
+  "author": "Liu <lc-soft@live.cn>",
+  "description": "A React library for LCUI development",
+  "license": "MIT",
+  "files": [
+    "lib",
+    "types.d.ts"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "yarn test:unit",
+    "test:unit": "yarn build && node --test ./test/**/*.test.mjs",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
+    "version": "yarn changelog && git add CHANGELOG.md"
+  },
+  "dependencies": {
+    "change-case-all": "^2.1.0",
+    "react": "^18.2.0"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.29",
+    "typescript": "^6.0.3"
+  },
+  "packageManager": "yarn@4.15.0"
+}
