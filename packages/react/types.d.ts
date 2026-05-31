@@ -1,4 +1,3 @@
-
 // The following content is copied from: https://github.com/vitejs/vite/blob/main/packages/vite/client.d.ts
 
 // CSS modules

@@ -21,7 +21,7 @@ To use these icons, you need to first import the CSS file in your root component
 ```tsx
 // src/App.tsx
 
-import '@lcui/react-icons/dist/style.css';
+import "@lcui/react-icons/dist/style.css";
 ```
 
 And then simply import them as `import { [IconName][Style] } from @lcui/react-icons.` For example:
@@ -29,8 +29,8 @@ And then simply import them as `import { [IconName][Style] } from @lcui/react-ic
 ```tsx
 // src/MyComponent.tsx
 
-import { AccessTime, AccessTimeFilled } from '@lcui/react-icons';
-import styles from './MyCompoennt.module.css';
+import { AccessTime, AccessTimeFilled } from "@lcui/react-icons";
+import styles from "./MyCompoennt.module.css";
 
 export default function MyComonent() {
   return (
@@ -49,8 +49,8 @@ If you don't like this usage, you can also use only the `Icon` component:
 ```tsx
 // src/MyComponent.tsx
 
-import { Icon } from '@lcui/react-icons';
-import styles from './MyCompoennt.module.css';
+import { Icon } from "@lcui/react-icons";
+import styles from "./MyCompoennt.module.css";
 
 export default function MyComonent() {
   return (

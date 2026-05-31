@@ -10,9 +10,9 @@ import {
   ObjectBinding,
   compiler,
 } from "./binding.js";
-import fmt from "./fmt.js";
+import fmt from "../runtime/fmt.js";
 import { JSXObjectBinding } from "./jsx-runtime.js";
-import { RouterView, Widget } from "./widgets.js";
+import { RouterView, Widget } from "../widgets/index.js";
 
 type ComponentFunction<T = {}> = {
   displayName?: string;
@@ -61,8 +61,7 @@ function allocRef(ctx: ComponentContext, node: Node, prefix = "ref_") {
   };
 }
 
-const toDashCase = (str: string) =>
-  str.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+const toDashCase = (str: string) => str.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
 
 function transformNodeStyle(node: Node, style: Record<string, any>) {
   const ctx = getComponentContext();
@@ -82,9 +81,7 @@ function transformNodeStyle(node: Node, style: Record<string, any>) {
     } else if (typeof value === "number" || typeof value == "string") {
       identify = JSON.stringify(value);
     }
-    ctx.body.push(
-      `ui_widget_set_style_string(${ref.cName}, "${propKey}", ${identify})`,
-    );
+    ctx.body.push(`ui_widget_set_style_string(${ref.cName}, "${propKey}", ${identify})`);
   });
 }
 
@@ -220,27 +217,17 @@ function transformReactNode(el: ReactNode, isRoot = false): Node | undefined {
   }
   if (props.style) {
     if (typeof props.style !== "object") {
-      throw SyntaxError(
-        `The style attribute value must be an object, not ${typeof props.style}`,
-      );
+      throw SyntaxError(`The style attribute value must be an object, not ${typeof props.style}`);
     }
     transformNodeStyle(node, props.style);
   }
   handlerNames.forEach((name) => {
-    transformEventHandler(
-      node,
-      name.substring(2).toLocaleLowerCase(),
-      props[name],
-    );
+    transformEventHandler(node, name.substring(2).toLocaleLowerCase(), props[name]);
   });
   return node;
 }
 
-function transformEventHandler(
-  node: Node,
-  eventName: string,
-  handler: string | Function,
-) {
+function transformEventHandler(node: Node, eventName: string, handler: string | Function) {
   const ctx = getComponentContext();
   const ref = allocRef(ctx, node);
   let decl = ctx.eventHandlers.find((item) => item.handler == handler);
@@ -248,9 +235,7 @@ function transformEventHandler(
     return decl.context.name;
   }
 
-  const name = ["handle", node.name, eventName, ctx.eventHandlers.length].join(
-    "_",
-  );
+  const name = ["handle", node.name, eventName, ctx.eventHandlers.length].join("_");
   decl = {
     target: ref.cName,
     eventName,
@@ -288,13 +273,11 @@ function parseHookValueNames(funcStr: string, hook: string) {
 export default function compile<T = {}>(
   componentFunc: ComponentFunction<T>,
   props: T,
-  options: { target?: "Widget" | "AppRouter"; name?: string },
+  options: { target?: "Widget" | "AppRouter"; name?: string }
 ) {
   const funcStr = `${componentFunc}`;
   const ctx: ComponentContext = {
-    ...createFunctionContext(
-      options?.name || componentFunc.displayName || componentFunc.name,
-    ),
+    ...createFunctionContext(options?.name || componentFunc.displayName || componentFunc.name),
     kind: "ComponentContext",
     state: [],
     refs: [],

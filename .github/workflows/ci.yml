@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  build:
+    name: build & test (Node ${{ matrix.node }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [20.x, 22.x]
+    env:
+      # Used by packages/fluent-icons/scripts/fetch-fonts.mjs to raise the
+      # rate limit when pulling raw font assets from GitHub.
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Cache Fluent icon fonts
+        uses: actions/cache@v4
+        with:
+          path: packages/fluent-icons/fonts
+          key: fluent-fonts-${{ hashFiles('packages/fluent-icons/fonts-version.json') }}
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run build
+      - run: npm test
+        env:
+          CI: true

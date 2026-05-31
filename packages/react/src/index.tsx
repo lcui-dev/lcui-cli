@@ -2,12 +2,11 @@
 
 import React from "react";
 
-export * from "./binding.js";
-export * from "./widgets.js";
-export { default as fmt } from "./fmt.js";
-export { default as useState } from "./useState.js";
-export { default as useRef } from "./useRef.js";
-export { default as compile } from "./compile.js";
+export * from "./compiler/index.js";
+export * from "./widgets/index.js";
+export { default as fmt } from "./runtime/fmt.js";
+export { default as useState } from "./runtime/useState.js";
+export { default as useRef } from "./runtime/useRef.js";
 
 export type { PropsWithChildren, ReactNode, ReactElement } from "react";
 

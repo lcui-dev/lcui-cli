@@ -46,11 +46,7 @@ interface NumericLiteral extends Node {
   type: CNumericType;
 }
 
-type InitializerExpression =
-  | NumericLiteral
-  | StringLiteral
-  | NewExpression
-  | ObjectBinding;
+type InitializerExpression = NumericLiteral | StringLiteral | NewExpression | ObjectBinding;
 
 interface VariableDeclaration {
   identifier: string;
@@ -156,9 +152,7 @@ export function getTypeName(value: Value) {
 }
 
 export function toClassName(typeName: string) {
-  return typeName.endsWith("_t")
-    ? typeName.substring(0, typeName.length - 1)
-    : typeName;
+  return typeName.endsWith("_t") ? typeName.substring(0, typeName.length - 1) : typeName;
 }
 
 export function getInitializerName(typeName: string) {
@@ -272,10 +266,7 @@ function compileObjectInitializer(obj: ObjectBinding) {
     case SyntaxKind.NumericLiteral:
       return init.text;
     case SyntaxKind.NewExpression:
-      return `${compileCallExpression(
-        getInitializerName(init.identifier),
-        init.arguments
-      )}`;
+      return `${compileCallExpression(getInitializerName(init.identifier), init.arguments)}`;
     default:
       break;
   }
@@ -381,9 +372,7 @@ function compileComponentState(ctx: ComponentContext) {
     "",
     compileComponentMethod({
       name: "react_destroy_state",
-      body: ctx.state.map((item) =>
-        compiler.compileObjectDestroyer(item.initializer)
-      ),
+      body: ctx.state.map((item) => compiler.compileObjectDestroyer(item.initializer)),
     }),
   ].join("\n");
 }
@@ -405,9 +394,7 @@ function compileComponentEventHandlers(ctx: ComponentContext) {
       body: ctx.eventHandlers.map(
         (item) =>
           `ui_widget_on(${item.target}, "${item.eventName}", ${
-            typeof item.handler === "string"
-              ? item.handler
-              : `${ctx.name}_${item.context.name}`
+            typeof item.handler === "string" ? item.handler : `${ctx.name}_${item.context.name}`
           }, w)`
       ),
     }),
@@ -421,8 +408,7 @@ function compileTypes(ctx: ComponentContext) {
     `typedef struct ${ctx.name}_react_state {`,
     ...(ctx.state.length > 0
       ? ctx.state.map(
-          (item) =>
-            `        ${getObjectTypeName(item.initializer)} ${item.identifier};`
+          (item) => `        ${getObjectTypeName(item.initializer)} ${item.identifier};`
         )
       : ["        char empty;"]),
     `} ${ctx.name}_react_state_t;`,
@@ -448,9 +434,7 @@ function compileComponent(ctx: ComponentContext) {
       `static void ${ctx.name}_react_init(ui_widget_t *w)`,
       "{",
       `        ${ctx.name}_react_t *_that = ui_widget_get_data(w, ${ctx.name}_proto);`,
-      `        ${ctx.name}_load_template(w${
-        ctx.refs.length > 0 ? ", &_that->refs" : ""
-      });`,
+      `        ${ctx.name}_load_template(w${ctx.refs.length > 0 ? ", &_that->refs" : ""});`,
       hasState && `        ${ctx.name}_react_init_state(w);`,
       hasEvents && `        ${ctx.name}_react_init_events(w);`,
       hasState && `        ${ctx.name}_react_update(w);`,
@@ -478,9 +462,7 @@ export function getFunctionContext() {
 
 export function getComponentContext() {
   if (contextList[0]?.kind !== "ComponentContext") {
-    throw new SyntaxError(
-      "The createState function must be called in a component function"
-    );
+    throw new SyntaxError("The createState function must be called in a component function");
   }
   return contextList[0] as ComponentContext;
 }
@@ -512,51 +494,42 @@ function createStringLiteral(value: string | null = null): StringLiteral {
   };
 }
 
-function createBinding<T extends object>(
-  meta: BindingMeta,
-  data: T = {} as T
-) {
-  const binding = new Proxy(
-    { __meta__: meta, ...data } as Record<string | symbol, unknown>,
-    {
-      get(target, p, receiver) {
-        if (p in target) {
-          return Reflect.get(target, p, receiver);
-        }
-        if (typeof p !== "string") {
-          return null;
-        }
-        return createBinding({
-          kind: BindingKind.Object,
-          owner: receiver,
-          type: CType.Object,
-          name: p,
-        });
-      },
-      construct(target: { __meta__: BindingMeta }, args) {
-        if (target.__meta__.kind !== BindingKind.Object) {
-          throw new SyntaxError("Module cannot be used as a constructor");
-        }
-        if (!meta.name) {
-          throw new SyntaxError("Constructor has no name");
-        }
-        return createVariable(meta.name, args);
-      },
-      apply(target: { __meta__: BindingMeta }, _thisArg, args) {
-        if (target.__meta__.kind === BindingKind.Module) {
-          throw new SyntaxError("Module cannot be used as a function");
-        }
-        const ctx = getFunctionContext();
-        ctx.body.push(
-          compileCallExpression(
-            resolveBindingIdentify(target as unknown as ObjectBinding),
-            args
-          )
-        );
-        return undefined;
-      },
-    }
-  ) as unknown as Binding & T;
+function createBinding<T extends object>(meta: BindingMeta, data: T = {} as T) {
+  const binding = new Proxy({ __meta__: meta, ...data } as Record<string | symbol, unknown>, {
+    get(target, p, receiver) {
+      if (p in target) {
+        return Reflect.get(target, p, receiver);
+      }
+      if (typeof p !== "string") {
+        return null;
+      }
+      return createBinding({
+        kind: BindingKind.Object,
+        owner: receiver,
+        type: CType.Object,
+        name: p,
+      });
+    },
+    construct(target: { __meta__: BindingMeta }, args) {
+      if (target.__meta__.kind !== BindingKind.Object) {
+        throw new SyntaxError("Module cannot be used as a constructor");
+      }
+      if (!meta.name) {
+        throw new SyntaxError("Constructor has no name");
+      }
+      return createVariable(meta.name, args);
+    },
+    apply(target: { __meta__: BindingMeta }, _thisArg, args) {
+      if (target.__meta__.kind === BindingKind.Module) {
+        throw new SyntaxError("Module cannot be used as a function");
+      }
+      const ctx = getFunctionContext();
+      ctx.body.push(
+        compileCallExpression(resolveBindingIdentify(target as unknown as ObjectBinding), args)
+      );
+      return undefined;
+    },
+  }) as unknown as Binding & T;
   return binding;
 }
 
@@ -564,10 +537,7 @@ function createObjectBinding<T extends object = {}>(
   meta: Omit<ObjectBindingMeta, "kind">,
   data: T = {} as T
 ): ObjectBinding & T {
-  return createBinding(
-    { ...meta, kind: BindingKind.Object },
-    data
-  ) as ObjectBinding & T;
+  return createBinding({ ...meta, kind: BindingKind.Object }, data) as ObjectBinding & T;
 }
 
 export function isObjectBinding(val: any): val is ObjectBinding {
@@ -583,9 +553,7 @@ function stringifyBinding(obj: ObjectBinding) {
       const typeName = getObjectTypeName(obj);
       const str = createStringVariable();
       ctx.body.push(
-        `${str.__meta__.name} = ${toClassName(typeName)}_to_string(${
-          obj.__meta__.name
-        })`
+        `${str.__meta__.name} = ${toClassName(typeName)}_to_string(${obj.__meta__.name})`
       );
     }
     case CType.Double: {
@@ -618,9 +586,7 @@ function stringifyBinding(obj: ObjectBinding) {
     default:
       break;
   }
-  throw SyntaxError(
-    `Unable to convert object ${obj.__meta__.name} to a string`
-  );
+  throw SyntaxError(`Unable to convert object ${obj.__meta__.name} to a string`);
 }
 
 export function stringifyValue(value: Value) {
@@ -661,11 +627,7 @@ function createBooleanBinding(name: string) {
   return createObjectBinding({ name, type: CType.Boolean });
 }
 
-function createNumericBinding(
-  name: string,
-  value: number,
-  type: CNumericType = CType.Int
-) {
+function createNumericBinding(name: string, value: number, type: CNumericType = CType.Int) {
   return createObjectBinding({
     name,
     type,

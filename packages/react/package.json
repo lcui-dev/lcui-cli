@@ -30,10 +30,18 @@
   },
   "typesVersions": {
     "*": {
-      "widgets": ["./lib/widgets/index.d.ts"],
-      "compiler": ["./lib/compiler/index.d.ts"],
-      "runtime": ["./lib/runtime/index.d.ts"],
-      "jsx-runtime": ["./lib/compiler/jsx-runtime.d.ts"]
+      "widgets": [
+        "./lib/widgets/index.d.ts"
+      ],
+      "compiler": [
+        "./lib/compiler/index.d.ts"
+      ],
+      "runtime": [
+        "./lib/runtime/index.d.ts"
+      ],
+      "jsx-runtime": [
+        "./lib/compiler/jsx-runtime.d.ts"
+      ]
     }
   },
   "files": [

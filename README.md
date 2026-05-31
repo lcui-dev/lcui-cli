@@ -9,11 +9,11 @@ have been merged here. Their full git histories are preserved via
 
 ## Packages
 
-| Path | npm name | Description |
-| --- | --- | --- |
-| [`packages/cli`](./packages/cli) | [`@lcui/cli`](https://www.npmjs.com/package/@lcui/cli) | Command line interface for rapid LCUI development |
-| [`packages/react`](./packages/react) | [`@lcui/react`](https://www.npmjs.com/package/@lcui/react) | React bindings and JSX-to-C compiler for LCUI |
-| [`packages/fluent-icons`](./packages/fluent-icons) | [`@lcui/fluent-icons`](https://www.npmjs.com/package/@lcui/fluent-icons) | Icon library based on fluentui-system-icons |
+| Path                                               | npm name                                                                 | Description                                       |
+| -------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------- |
+| [`packages/cli`](./packages/cli)                   | [`@lcui/cli`](https://www.npmjs.com/package/@lcui/cli)                   | Command line interface for rapid LCUI development |
+| [`packages/react`](./packages/react)               | [`@lcui/react`](https://www.npmjs.com/package/@lcui/react)               | React bindings and JSX-to-C compiler for LCUI     |
+| [`packages/fluent-icons`](./packages/fluent-icons) | [`@lcui/fluent-icons`](https://www.npmjs.com/package/@lcui/fluent-icons) | Icon library based on fluentui-system-icons       |
 
 > `@lcui/fluent-icons` was previously published as `@lcui/react-icons`. The
 > rename ships in version `2.0.0`; older releases remain available under the

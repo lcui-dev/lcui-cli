@@ -21,7 +21,7 @@ npm install @lcui/react-icons
 ```tsx
 // src/App.tsx
 
-import '@lcui/react-icons/dist/style.css';
+import "@lcui/react-icons/dist/style.css";
 ```
 
 然后用 `import { [IconName][Style] } from @lcui/react-icons` 来引入它们。例如：
@@ -29,8 +29,8 @@ import '@lcui/react-icons/dist/style.css';
 ```tsx
 // src/MyComponent.tsx
 
-import { AccessTime, AccessTimeFilled } from '@lcui/react-icons';
-import styles from './MyCompoennt.module.css';
+import { AccessTime, AccessTimeFilled } from "@lcui/react-icons";
+import styles from "./MyCompoennt.module.css";
 
 export default function MyComonent() {
   return (
@@ -49,8 +49,8 @@ export default function MyComonent() {
 ```tsx
 // src/MyComponent.tsx
 
-import { Icon } from '@lcui/react-icons';
-import styles from './MyCompoennt.module.css';
+import { Icon } from "@lcui/react-icons";
+import styles from "./MyCompoennt.module.css";
 
 export default function MyComonent() {
   return (

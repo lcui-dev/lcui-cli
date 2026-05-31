@@ -12,7 +12,7 @@ import {
   factory,
   compiler,
   isNumericType,
-} from "./binding.js";
+} from "../compiler/binding.js";
 
 function setObjectBindingValue(obj: ObjectBinding, newValue: Value) {
   const ctx = getFunctionContext();
@@ -61,15 +61,12 @@ function setObjectBindingValue(obj: ObjectBinding, newValue: Value) {
 export default function useState(initialValue: Value, valueType?: CType) {
   let value: ObjectBinding;
   const ctx = getComponentContext();
-  const stateName =
-    ctx.stateNames[ctx.state.length] || `unnamed_state_${ctx.state.length}`;
+  const stateName = ctx.stateNames[ctx.state.length] || `unnamed_state_${ctx.state.length}`;
   const stateCName = `_that->state.${stateName}`;
 
   if (isObjectBinding(initialValue)) {
     value = initialValue;
-    ctx.locals = ctx.locals.filter(
-      (local) => local.initializer !== initialValue
-    );
+    ctx.locals = ctx.locals.filter((local) => local.initializer !== initialValue);
     ctx.body = ctx.body.filter((line) => !line.startsWith(value.__meta__.name));
     value.__meta__.name = stateCName;
   } else {
@@ -85,11 +82,7 @@ export default function useState(initialValue: Value, valueType?: CType) {
         break;
       case "number":
         if (valueType !== undefined && isNumericType(valueType)) {
-          value = factory.createNumericBinding(
-            stateCName,
-            initialValue,
-            valueType
-          );
+          value = factory.createNumericBinding(stateCName, initialValue, valueType);
           break;
         }
         throw new SyntaxError(`Unsupported numeric CType: ${valueType}`);
@@ -98,8 +91,5 @@ export default function useState(initialValue: Value, valueType?: CType) {
     }
   }
   ctx.state.push({ identifier: stateName, initializer: value });
-  return [
-    value,
-    (newValue: Value) => setObjectBindingValue(value, newValue),
-  ] as const;
+  return [value, (newValue: Value) => setObjectBindingValue(value, newValue)] as const;
 }

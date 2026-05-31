@@ -1,0 +1,11 @@
+{
+  "$comment": "Upstream microsoft/fluentui-system-icons tag to fetch fonts from. Update this file (and a corresponding changeset) to bump the icon set.",
+  "repo": "microsoft/fluentui-system-icons",
+  "ref": "1.1.328",
+  "files": [
+    "FluentSystemIcons-Filled.json",
+    "FluentSystemIcons-Filled.ttf",
+    "FluentSystemIcons-Regular.json",
+    "FluentSystemIcons-Regular.ttf"
+  ]
+}

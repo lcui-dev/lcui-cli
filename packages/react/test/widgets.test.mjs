@@ -11,7 +11,7 @@ import {
   ScrollAreaContent,
   RouterLink,
   RouterView,
-} from "../lib/widgets.js";
+} from "../lib/widgets/index.js";
 
 const tagCases = [
   ["Text", Text, "text"],

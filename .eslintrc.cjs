@@ -29,6 +29,9 @@ module.exports = {
     "packages/cli/test/fixtures/*/project/",
     "packages/fluent-icons/src/",
     "packages/fluent-icons/fonts/",
+    "packages/fluent-icons/scripts/convert.js",
+    // Ambient type declarations - not parseable as a module by ESLint.
+    "packages/react/types.d.ts",
   ],
   overrides: [
     // TypeScript sources across all packages
@@ -50,6 +53,19 @@ module.exports = {
         ],
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-this-alias": "off",
+      },
+    },
+
+    // @lcui/react sources: relax a few rules that the upstream codebase
+    // historically relied on. Tightening these should be a separate PR.
+    {
+      files: ["packages/react/src/**/*.{ts,tsx}"],
+      rules: {
+        "no-fallthrough": "off",
+        "prefer-const": "warn",
+        "@typescript-eslint/ban-types": "off",
+        "@typescript-eslint/no-namespace": "off",
+        "@typescript-eslint/triple-slash-reference": "off",
       },
     },
 
@@ -77,7 +93,7 @@ module.exports = {
       },
     },
 
-    // Node CLI entry (plain JS, ESM)
+    // Node CLI entry & build scripts (plain JS, ESM)
     {
       files: ["packages/cli/bin/**/*.js", "packages/fluent-icons/scripts/**/*.{js,mjs}"],
       parserOptions: { sourceType: "module" },

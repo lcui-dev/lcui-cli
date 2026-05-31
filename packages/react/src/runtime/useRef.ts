@@ -5,7 +5,7 @@ import {
   getFunctionContext,
   ObjectBinding,
   stringifyValue,
-} from "./binding.js";
+} from "../compiler/binding.js";
 
 class WidgetInstance {
   ident: string;
@@ -18,11 +18,7 @@ class WidgetInstance {
   getTextInputValue(): ObjectBinding {
     const ctx = getFunctionContext();
     const str = factory.createStringVariable();
-    const len = factory.createNumericVariable(
-      `${str.__meta__.name}_len`,
-      0,
-      CType.Size
-    );
+    const len = factory.createNumericVariable(`${str.__meta__.name}_len`, 0, CType.Size);
     const wcsIdent = `${str.__meta__.name}_wcs`;
     const wcsLenIdent = `${wcsIdent}_len`;
     ctx.body.push(
@@ -76,8 +72,8 @@ export default function useRef(): ObjectBinding & WidgetRefBinding {
   const cName = `_that->refs.${name}`;
 
   ctx.refs.push(name);
-  ctx.headerFiles.add('<stdlib.h>');
-  ctx.headerFiles.add('<LCUI/widgets.h>');
+  ctx.headerFiles.add("<stdlib.h>");
+  ctx.headerFiles.add("<LCUI/widgets.h>");
   return factory.createObjectBinding<WidgetRefBinding>(
     {
       name: cName,

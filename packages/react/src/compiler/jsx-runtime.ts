@@ -35,8 +35,4 @@ export const jsx: JSXFactor = (type, props, key) =>
   (rt as unknown as { jsx: JSXFactor }).jsx(type, transformElementProps(props), key);
 
 export const jsxs: JSXFactor = (type, props, key) =>
-  (rt as unknown as { jsxs: JSXFactor }).jsxs(
-    type,
-    transformElementProps(props),
-    key
-  );
+  (rt as unknown as { jsxs: JSXFactor }).jsxs(type, transformElementProps(props), key);

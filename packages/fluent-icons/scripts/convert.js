@@ -95,11 +95,12 @@ function convert(fontsDirPath) {
   if (!fs.existsSync("dist")) {
     fs.mkdirSync("dist");
   }
+  if (!fs.existsSync("src")) {
+    fs.mkdirSync("src");
+  }
   fonts.forEach((font) => {
     const jsonFile = path.join(fontsDirPath, `${font.name}.json`);
-    const jsonData = JSON.parse(
-      fs.readFileSync(jsonFile, { encoding: "utf-8" })
-    );
+    const jsonData = JSON.parse(fs.readFileSync(jsonFile, { encoding: "utf-8" }));
     const iconList = Object.keys(jsonData)
       .sort()
       .map((key) => ({
@@ -117,10 +118,7 @@ function convert(fontsDirPath) {
       "}\n",
     ].join("\n");
     const fullCss = `${mainCss}\n${iconList
-      .map(
-        ({ code, name }) =>
-          `.${name} {\n  content: "\\${code.toString(16)}";\n}`
-      )
+      .map(({ code, name }) => `.${name} {\n  content: "\\${code.toString(16)}";\n}`)
       .join("\n")}`;
 
     iconCssOutput.push(mainCss);
@@ -160,10 +158,7 @@ function convert(fontsDirPath) {
       path.join("dist", `${font.name}.ttf`)
     );
   });
-  iconTsxOutput.push(
-    `\nconst iconMap = ${JSON.stringify(iconMap, null, 2)};`,
-    iconFileMain
-  );
+  iconTsxOutput.push(`\nconst iconMap = ${JSON.stringify(iconMap, null, 2)};`, iconFileMain);
   Object.keys(iconMap)
     .sort()
     .forEach((key) => {

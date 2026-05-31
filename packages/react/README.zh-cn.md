@@ -13,12 +13,12 @@ npm install -D @lcui/react
 ## 使用
 
 ```tsx
-import { useState, useRef, TextInput, Button } from '@lcui/react';
-import styles from './app.module.css';
+import { useState, useRef, TextInput, Button } from "@lcui/react";
+import styles from "./app.module.css";
 
 export default function App() {
   const inputRef = useRef();
-  const [name, setName] = useState('World');
+  const [name, setName] = useState("World");
 
   return (
     <div className={styles.app}>

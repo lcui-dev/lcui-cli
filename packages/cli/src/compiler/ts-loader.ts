@@ -79,7 +79,7 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
   await loader.generateModule(
     loader.resourcePath,
     () =>
-      tsResult.outputText.replace("react/jsx-runtime", "@lcui/react/lib/jsx-runtime.js") +
+      tsResult.outputText.replace("react/jsx-runtime", "@lcui/react/jsx-runtime") +
       `\n\nexport const componentList = [${localFuncNames.join(", ")}];\n`
   );
   const importedModule = (await loader.importModule(loader.resourcePath)) as Module & {

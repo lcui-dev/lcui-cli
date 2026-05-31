@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/lcui-dev/lcui-toolkit/tree/develop/packages/cli#readme",
   "dependencies": {
-    "@lcui/react": "workspace:^",
+    "@lcui/react": "*",
     "chalk": "^5.6.2",
     "change-case": "^4.1.2",
     "change-case-all": "^2.1.0",

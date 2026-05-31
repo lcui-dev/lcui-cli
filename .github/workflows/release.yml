@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - develop
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Version & publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Cache Fluent icon fonts
+        uses: actions/cache@v4
+        with:
+          path: packages/fluent-icons/fonts
+          key: fluent-fonts-${{ hashFiles('packages/fluent-icons/fonts-version.json') }}
+
+      - run: npm ci
+
+      - name: Build all packages
+        run: npm run build
+
+      - name: Create release PR or publish
+        uses: changesets/action@v1
+        with:
+          version: npm run version-packages
+          publish: npm run release
+          commit: "chore(release): version packages"
+          title: "chore(release): version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

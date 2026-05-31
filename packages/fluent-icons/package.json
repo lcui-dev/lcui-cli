@@ -29,10 +29,10 @@
   "author": "Liu <lc-soft@live.cn>",
   "license": "MIT",
   "dependencies": {
-    "@lcui/react": "workspace:^"
+    "@lcui/react": "*"
   },
   "peerDependencies": {
-    "@lcui/react": "workspace:^"
+    "@lcui/react": "*"
   },
   "devDependencies": {
     "react": "^18.2.0"
