@@ -11,7 +11,7 @@ This project regenerates the icon library based on the icon files from [Fluent U
 ## Installation
 
 ```sh
-npm install @lcui/react-icons
+npm install @lcui/fluent-icons
 ```
 
 ## Usage
@@ -21,15 +21,15 @@ To use these icons, you need to first import the CSS file in your root component
 ```tsx
 // src/App.tsx
 
-import "@lcui/react-icons/dist/style.css";
+import "@lcui/fluent-icons/dist/style.css";
 ```
 
-And then simply import them as `import { [IconName][Style] } from @lcui/react-icons.` For example:
+And then simply import them as `import { [IconName][Style] } from @lcui/fluent-icons.` For example:
 
 ```tsx
 // src/MyComponent.tsx
 
-import { AccessTime, AccessTimeFilled } from "@lcui/react-icons";
+import { AccessTime, AccessTimeFilled } from "@lcui/fluent-icons";
 import styles from "./MyCompoennt.module.css";
 
 export default function MyComonent() {
@@ -49,7 +49,7 @@ If you don't like this usage, you can also use only the `Icon` component:
 ```tsx
 // src/MyComponent.tsx
 
-import { Icon } from "@lcui/react-icons";
+import { Icon } from "@lcui/fluent-icons";
 import styles from "./MyCompoennt.module.css";
 
 export default function MyComonent() {
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 }
 ```
 
-Afterwards, manually copy the CSS and TTF files from the `node_modules/@lcui/react-icons/dist` directory to the application's working directory.
+Afterwards, manually copy the CSS and TTF files from the `node_modules/@lcui/fluent-icons/dist` directory to the application's working directory.
 
 ## Update
 
@@ -103,4 +103,4 @@ npm run build
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](../../LICENSE)

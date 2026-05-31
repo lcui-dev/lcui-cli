@@ -1,5 +1,7 @@
 # lcui-toolkit
 
+([中文](./README.zh-cn.md)/**English**)
+
 Monorepo for LCUI web tooling. The previously separate repositories
 [`lcui-cli`](https://github.com/lcui-dev/lcui-cli),
 [`lcui-react`](https://github.com/lcui-dev/react), and

@@ -56,4 +56,4 @@ lcui build app/page.tsx
 
 ## License
 
-[MIT](LICENSE)
+[MIT](../../LICENSE)

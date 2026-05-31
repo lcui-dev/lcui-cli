@@ -11,7 +11,7 @@
 ## 安装
 
 ```sh
-npm install @lcui/react-icons
+npm install @lcui/fluent-icons
 ```
 
 ## 使用
@@ -21,15 +21,15 @@ npm install @lcui/react-icons
 ```tsx
 // src/App.tsx
 
-import "@lcui/react-icons/dist/style.css";
+import "@lcui/fluent-icons/dist/style.css";
 ```
 
-然后用 `import { [IconName][Style] } from @lcui/react-icons` 来引入它们。例如：
+然后用 `import { [IconName][Style] } from @lcui/fluent-icons` 来引入它们。例如：
 
 ```tsx
 // src/MyComponent.tsx
 
-import { AccessTime, AccessTimeFilled } from "@lcui/react-icons";
+import { AccessTime, AccessTimeFilled } from "@lcui/fluent-icons";
 import styles from "./MyCompoennt.module.css";
 
 export default function MyComonent() {
@@ -49,7 +49,7 @@ export default function MyComonent() {
 ```tsx
 // src/MyComponent.tsx
 
-import { Icon } from "@lcui/react-icons";
+import { Icon } from "@lcui/fluent-icons";
 import styles from "./MyCompoennt.module.css";
 
 export default function MyComonent() {
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 }
 ```
 
-之后，手动复制 `node_modules/@lcui/react-icons/dist` 目录内的 css 和 ttf 文件到应用程序工作目录内。
+之后，手动复制 `node_modules/@lcui/fluent-icons/dist` 目录内的 css 和 ttf 文件到应用程序工作目录内。
 
 ## 更新
 
@@ -103,4 +103,4 @@ npm run build
 
 ## 许可
 
-[MIT](./LICENSE)
+[MIT](../../LICENSE)

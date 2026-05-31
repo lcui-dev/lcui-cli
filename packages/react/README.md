@@ -39,4 +39,4 @@ LCUI is not a browser engine, and functions such as text display and input need 
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](../../LICENSE)
