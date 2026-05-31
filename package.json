@@ -1,0 +1,47 @@
+{
+  "name": "lcui-toolkit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Monorepo for LCUI web tooling: CLI, React bindings, and icon library",
+  "license": "MIT",
+  "author": "Liu <lc-soft@live.cn>",
+  "homepage": "https://github.com/lcui-dev/lcui-toolkit#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lcui-dev/lcui-toolkit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lcui-dev/lcui-toolkit/issues"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "eslint . --ext .js,.cjs,.mjs,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.cjs,.mjs,.ts,.tsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "npm run build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.0",
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
+    "@types/node": "^24.12.4",
+    "@types/react": "^18.3.29",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.8.3",
+    "typescript": "^5.9.3"
+  }
+}

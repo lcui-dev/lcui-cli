@@ -1,14 +1,9 @@
 {
-  "exclude": ["dist", "node_modules"],
-  "include": ["src"],
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "moduleResolution": "Node",
-    "declaration": true,
-    "checkJs": false,
-    "outDir": "dist",
-    "target": "ESNext",
-    "module": "ES6",
-    "jsx": "react"
-  }
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": ["./src"],
+  "exclude": ["dist", "node_modules"]
 }

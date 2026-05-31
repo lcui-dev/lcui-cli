@@ -1,13 +1,9 @@
 /**
- * ESLint configuration (legacy / .eslintrc style).
+ * Root ESLint configuration for the lcui-toolkit monorepo.
  * Targets ESLint 8 + @typescript-eslint 7.
  *
- * Scope:
- *  - TypeScript sources under ./src use the TS parser and @typescript-eslint/recommended.
- *  - Plain JS (bin/, test/*.js) uses eslint:recommended in Node + Mocha env.
- *  - .eslintrc.cjs and similar config files are scripts, not modules.
- *
- * Formatting concerns are owned by Prettier; this config intentionally avoids style rules.
+ * Each workspace inherits this configuration; formatting concerns are owned
+ * by Prettier, so this file intentionally avoids style rules.
  */
 module.exports = {
   root: true,
@@ -30,12 +26,14 @@ module.exports = {
     ".nyc_output/",
     ".lcui/",
     ".xmake/",
-    "test/fixtures/*/project/",
+    "packages/cli/test/fixtures/*/project/",
+    "packages/fluent-icons/src/",
+    "packages/fluent-icons/fonts/",
   ],
   overrides: [
-    // TypeScript sources
+    // TypeScript sources across all packages
     {
-      files: ["src/**/*.ts", "src/**/*.tsx"],
+      files: ["packages/*/src/**/*.ts", "packages/*/src/**/*.tsx"],
       parser: "@typescript-eslint/parser",
       parserOptions: {
         ecmaVersion: "latest",
@@ -45,29 +43,26 @@ module.exports = {
       plugins: ["@typescript-eslint"],
       extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
       rules: {
-        // TS handles undeclared identifiers; the core rule produces false positives on types.
         "no-unused-vars": "off",
         "@typescript-eslint/no-unused-vars": [
           "warn",
           { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
         ],
-        // Allow `any` for now; the codebase uses it intentionally in a few places.
         "@typescript-eslint/no-explicit-any": "off",
-        // Loader functions intentionally capture `this` into a local for use inside nested closures.
         "@typescript-eslint/no-this-alias": "off",
       },
     },
 
-    // Mocha test files (plain JS)
+    // Mocha / node test files (plain JS / MJS)
     {
-      files: ["test/**/*.js"],
+      files: ["packages/*/test/**/*.{js,mjs}"],
       env: { node: true, mocha: true },
       parserOptions: { sourceType: "module" },
     },
 
     // TSX fixtures used by ts-loader tests
     {
-      files: ["test/fixtures/**/*.{ts,tsx}"],
+      files: ["packages/cli/test/fixtures/**/*.{ts,tsx}"],
       parser: "@typescript-eslint/parser",
       parserOptions: {
         ecmaVersion: "latest",
@@ -84,7 +79,7 @@ module.exports = {
 
     // Node CLI entry (plain JS, ESM)
     {
-      files: ["bin/**/*.js"],
+      files: ["packages/cli/bin/**/*.js", "packages/fluent-icons/scripts/**/*.{js,mjs}"],
       parserOptions: { sourceType: "module" },
     },
 

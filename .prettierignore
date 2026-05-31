@@ -22,7 +22,10 @@ yarn.lock
 package-lock.json
 
 # Test fixtures (generated projects)
-test/fixtures/*/project/
+packages/cli/test/fixtures/*/project/
+
+# Generated source
+packages/fluent-icons/src/
 
 # Misc
 CHANGELOG.md

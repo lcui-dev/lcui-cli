@@ -2,24 +2,63 @@
   "name": "@lcui/react",
   "version": "0.5.0",
   "type": "module",
+  "description": "A React library for LCUI development",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "repository": "https://gitee.com/lcui-dev/react",
-  "author": "Liu <lc-soft@live.cn>",
-  "description": "A React library for LCUI development",
-  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js"
+    },
+    "./widgets": {
+      "types": "./lib/widgets/index.d.ts",
+      "import": "./lib/widgets/index.js"
+    },
+    "./compiler": {
+      "types": "./lib/compiler/index.d.ts",
+      "import": "./lib/compiler/index.js"
+    },
+    "./runtime": {
+      "types": "./lib/runtime/index.d.ts",
+      "import": "./lib/runtime/index.js"
+    },
+    "./jsx-runtime": {
+      "types": "./lib/compiler/jsx-runtime.d.ts",
+      "import": "./lib/compiler/jsx-runtime.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "widgets": ["./lib/widgets/index.d.ts"],
+      "compiler": ["./lib/compiler/index.d.ts"],
+      "runtime": ["./lib/runtime/index.d.ts"],
+      "jsx-runtime": ["./lib/compiler/jsx-runtime.d.ts"]
+    }
+  },
   "files": [
     "lib",
-    "types.d.ts"
+    "types.d.ts",
+    "README.md",
+    "README.zh-cn.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "yarn test:unit",
-    "test:unit": "yarn build && node --test ./test/**/*.test.mjs",
-    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "version": "yarn changelog && git add CHANGELOG.md"
+    "test": "npm run build && node --test ./test/**/*.test.mjs"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lcui-dev/lcui-toolkit.git",
+    "directory": "packages/react"
+  },
+  "bugs": {
+    "url": "https://github.com/lcui-dev/lcui-toolkit/issues"
+  },
+  "homepage": "https://github.com/lcui-dev/lcui-toolkit/tree/develop/packages/react#readme",
+  "author": "Liu <lc-soft@live.cn>",
+  "license": "MIT",
   "dependencies": {
     "change-case-all": "^2.1.0",
     "react": "^18.2.0"
@@ -27,9 +66,8 @@
   "peerDependencies": {
     "react": "^18.2.0"
   },
-  "devDependencies": {
-    "@types/react": "^18.3.29",
-    "typescript": "^6.0.3"
-  },
-  "packageManager": "yarn@4.15.0"
+  "keywords": [
+    "lcui",
+    "react"
+  ]
 }

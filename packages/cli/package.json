@@ -8,25 +8,30 @@
     "lcui": "bin/lcui.js"
   },
   "files": [
-    "lib"
+    "lib",
+    "bin",
+    "README.md",
+    "README.zh-cn.md",
+    "CHANGELOG.md"
   ],
   "types": "./lib/types.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "mocha --recursive --extension test.js test",
-    "lint": "eslint . --ext .js,.cjs,.ts,.tsx",
-    "lint:fix": "eslint . --ext .js,.cjs,.ts,.tsx --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "version": "npm run build && npm run changelog && git add CHANGELOG.md"
+    "test": "mocha --recursive --extension test.js test"
   },
   "author": "Liu",
   "license": "MIT",
   "repository": {
-    "url": "git+https://github.com/lc-ui/lcui-cli.git"
+    "type": "git",
+    "url": "git+https://github.com/lcui-dev/lcui-toolkit.git",
+    "directory": "packages/cli"
   },
+  "bugs": {
+    "url": "https://github.com/lcui-dev/lcui-toolkit/issues"
+  },
+  "homepage": "https://github.com/lcui-dev/lcui-toolkit/tree/develop/packages/cli#readme",
   "dependencies": {
+    "@lcui/react": "workspace:^",
     "chalk": "^5.6.2",
     "change-case": "^4.1.2",
     "change-case-all": "^2.1.0",
@@ -48,23 +53,10 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.0.2",
-    "@commitlint/config-conventional": "^21.0.2",
-    "@lcui/react": "^0.5.0",
     "@types/fs-extra": "^11.0.4",
-    "@types/node": "^24.12.4",
     "@types/postcss-url": "^10.0.4",
-    "@types/react": "^18.3.29",
-    "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0",
-    "eslint": "^8.50.0",
-    "mocha": "^11.7.6",
-    "prettier": "^3.8.3"
+    "mocha": "^11.7.6"
   },
-  "bugs": {
-    "url": "https://github.com/lc-ui/lcui-cli/issues"
-  },
-  "homepage": "https://github.com/lc-ui/lcui-cli#readme",
   "directories": {
     "lib": "lib",
     "test": "test"
