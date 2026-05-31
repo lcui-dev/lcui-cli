@@ -1,0 +1,6 @@
+{
+    "i18n-ally.localesPaths": [
+        "compilers/i18n",
+        "generators/i18n"
+    ]
+}
