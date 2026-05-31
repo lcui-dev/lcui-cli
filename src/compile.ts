@@ -83,7 +83,7 @@ function transformNodeStyle(node: Node, style: Record<string, any>) {
       identify = JSON.stringify(value);
     }
     ctx.body.push(
-      `ui_widget_set_style_string(${ref.cName}, "${propKey}", ${identify})`
+      `ui_widget_set_style_string(${ref.cName}, "${propKey}", ${identify})`,
     );
   });
 }
@@ -221,13 +221,17 @@ function transformReactNode(el: ReactNode, isRoot = false): Node | undefined {
   if (props.style) {
     if (typeof props.style !== "object") {
       throw SyntaxError(
-        `The style attribute value must be an object, not ${typeof props.style}`
+        `The style attribute value must be an object, not ${typeof props.style}`,
       );
     }
     transformNodeStyle(node, props.style);
   }
   handlerNames.forEach((name) => {
-    transformEventHandler(node, name.substring(2).toLocaleLowerCase(), props[name]);
+    transformEventHandler(
+      node,
+      name.substring(2).toLocaleLowerCase(),
+      props[name],
+    );
   });
   return node;
 }
@@ -235,7 +239,7 @@ function transformReactNode(el: ReactNode, isRoot = false): Node | undefined {
 function transformEventHandler(
   node: Node,
   eventName: string,
-  handler: string | Function
+  handler: string | Function,
 ) {
   const ctx = getComponentContext();
   const ref = allocRef(ctx, node);
@@ -245,7 +249,7 @@ function transformEventHandler(
   }
 
   const name = ["handle", node.name, eventName, ctx.eventHandlers.length].join(
-    "_"
+    "_",
   );
   decl = {
     target: ref.cName,
@@ -284,12 +288,12 @@ function parseHookValueNames(funcStr: string, hook: string) {
 export default function compile<T = {}>(
   componentFunc: ComponentFunction<T>,
   props: T,
-  options: { target?: "Widget" | "AppRouter"; name?: string }
+  options: { target?: "Widget" | "AppRouter"; name?: string },
 ) {
   const funcStr = `${componentFunc}`;
   const ctx: ComponentContext = {
     ...createFunctionContext(
-      options?.name || componentFunc.displayName || componentFunc.name
+      options?.name || componentFunc.displayName || componentFunc.name,
     ),
     kind: "ComponentContext",
     state: [],
@@ -335,9 +339,8 @@ void ${ctx.name}_update(ui_widget_t *w);
 
 static void ${ctx.name}_init(ui_widget_t *w)
 {
-        ui_widget_add_data(w, ${ctx.name}_proto, sizeof(${ctx.name}_t));${
-      hasBaseType ? `${ctx.name}_proto->proto->init(w);` : ""
-    }
+        ui_widget_add_data(w, ${ctx.name}_proto, sizeof(${ctx.name}_t));
+${hasBaseType ? `        ${ctx.name}_proto->proto->init(w);` : "\n"}
         ${ctx.name}_react_init(w);
         // Write the initialization code for your component here
         // such as state initialization, event binding, etc
@@ -355,7 +358,7 @@ static void ${ctx.name}_destroy(ui_widget_t *w)
 {
         // Write code here to destroy the relevant resources of the component
         // ...
-
+${hasBaseType ? `        ${ctx.name}_proto->proto->destroy(w);` : "\n"}
         ${ctx.name}_react_destroy(w);
 }
 
