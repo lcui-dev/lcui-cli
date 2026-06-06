@@ -2,8 +2,8 @@ import path from "path";
 import postcss, { Message } from "postcss";
 import postcssUrl from "postcss-url";
 import postcssModules from "postcss-modules";
+import postcssrc from "postcss-load-config";
 import { Loader, LoaderContext, ModuleMetadata, toError } from "../types.js";
-import { loadConfig } from "../utils.js";
 
 interface CSSLoaderOptions {
   modules?: boolean;
@@ -45,11 +45,21 @@ const CSSLoader: Loader<string | Buffer, string> = async function CSSLoader(
       })
     );
   }
-  const customConfig = (await loadConfig(path.dirname(loader.resourcePath), "postcss")) as null | {
-    plugins?: postcss.AcceptedPlugin[];
-  };
-  if (customConfig && Array.isArray(customConfig.plugins)) {
-    customConfig.plugins.forEach((plugin) => processor.use(plugin));
+  // 通过官方的 postcss-load-config 自动发现并加载 postcss 配置（支持
+  // postcss.config.{js,cjs,mjs,ts}、.postcssrc.* 以及 package.json 中的
+  // "postcss" 字段）。它同时支持数组语法和对象语法的 plugins，并且对
+  // 空 options（null/undefined/{}）会跳过传参，避开某些插件（如
+  // postcss-rem-to-px）默认参数被空对象覆盖导致 NaN 的问题。
+  try {
+    const dir = path.dirname(loader.resourcePath);
+    const loaded = await postcssrc({ cwd: dir }, dir);
+    loaded.plugins.forEach((plugin) => processor.use(plugin));
+  } catch (err) {
+    const e = toError(err);
+    // 项目没有 postcss 配置不是错误，与历史行为一致地静默跳过。
+    if (!/No PostCSS Config found/i.test(e.message)) {
+      throw err;
+    }
   }
   const result = await processor.process(cssText, { from: loader.resourcePath }).async();
 

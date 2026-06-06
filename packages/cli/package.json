@@ -36,10 +36,10 @@
     "change-case": "^4.1.2",
     "change-case-all": "^2.1.0",
     "commander": "^15.0.0",
-    "cosmiconfig": "^9.0.0",
     "fs-extra": "^11.3.5",
     "os-locale": "^8.0.0",
     "postcss": "^8.5.15",
+    "postcss-load-config": "^4.0.2",
     "postcss-modules": "^6.0.0",
     "postcss-sass": "^0.5.0",
     "postcss-url": "^10.1.3",
@@ -53,9 +53,11 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
+    "@thedutchcoder/postcss-rem-to-px": "^0.0.2",
     "@types/fs-extra": "^11.0.4",
     "@types/postcss-url": "^10.0.4",
-    "mocha": "^11.7.6"
+    "mocha": "^11.7.6",
+    "tailwindcss": "3.4.17"
   },
   "directories": {
     "lib": "lib",
