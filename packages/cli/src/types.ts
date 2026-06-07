@@ -26,6 +26,16 @@ export interface CompilerOptions {
   verbose?: boolean;
   clean?: boolean;
   /**
+   * 忽略 build manifest，强制重编所有文件。
+   * 等价于先删除 .lcui/build/manifest.json 再 build。
+   */
+  force?: boolean;
+  /**
+   * 编译完成后跳过 xmake 调用。
+   * 即使存在 xmake.lua 也不会触发本机 C 编译，便于上层流程自行控制。
+   */
+  skipXMake?: boolean;
+  /**
    * 模块所在的目录
    * 可以用作解析其他模块成员的上下文
    **/
@@ -56,6 +66,13 @@ export interface Hook<Args extends unknown[] = unknown[]> {
 export interface CompilerContext extends CompilerOptions {
   /** 资源文件的路径 */
   resourcePath: string;
+
+  /**
+   * 当前正在编译的"顶层入口"路径。一个入口在 loader 链内可能 importModule
+   * 出更多子模块；不论嵌套多深，这些子模块的依赖关系都会回溯到这个 entryPath，
+   * 用作 build manifest 的 key。
+   */
+  entryPath?: string;
 
   /** 资源文件的输出路径 */
   resourceOutputPath: string;
@@ -90,6 +107,16 @@ export interface LoaderContext extends CompilerContext {
    * 调用处可通过类型参数 T 指定具体形态。
    */
   getOptions<T = LoaderOptions>(): T;
+  /**
+   * 声明该 loader 在处理当前资源时读取了一个外部文件。
+   * 这些依赖会随同 entry 写入 build manifest，下次 build 时若依赖文件
+   * 内容变化，则会失效缓存并重新跑 loader 链。
+   *
+   * 注意：通过 `importModule` 引入的子模块会自动作为依赖记录，loader
+   * 一般无需手动 addDependency；仅在 loader 直接 fs.readFile / sass @import
+   * 等场景下需要显式调用。
+   */
+  addDependency(filePath: string): void;
 }
 
 export interface CompilerInstance {
@@ -99,6 +126,11 @@ export interface CompilerInstance {
     loadModule: Hook<[file: string, data: Record<string, unknown>]>;
     done: Hook<[]>;
   };
+  /**
+   * 本次 build 真正写盘 / 内容发生改变的所有产物文件绝对路径。
+   * AppPlugin 与外部插件可据此决定是否触发下游构建（例如 xmake）。
+   */
+  changedOutputs: Set<string>;
 }
 
 export interface ComponentConfig {

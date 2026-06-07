@@ -4,6 +4,7 @@ import { AppComponentsCompiler } from "./components.js";
 import { AppRouterCompiler } from "./router.js";
 import { CompilerInstance, ComponentConfig } from "../types.js";
 import { runXMake } from "./xmake.js";
+import { writeIfChanged } from "../compiler/fs-cache.js";
 
 export default class AppPlugin {
   name = "AppPlugin";
@@ -29,9 +30,10 @@ export default class AppPlugin {
 
       componentsCompiler.saveCache();
       if (!fs.existsSync(mainSourceFile)) {
-        fs.writeFileSync(
-          mainSourceFile,
-          `#include "main.h"
+        if (
+          writeIfChanged(
+            mainSourceFile,
+            `#include "main.h"
 
 int main(int argc, char *argv[])
 {
@@ -44,11 +46,15 @@ ${router.initCode.map((line) => `        ${line}`).join("\n")}
         return app_run();
 }
 `
-        );
+          )
+        ) {
+          compiler.changedOutputs.add(mainSourceFile);
+        }
       }
-      fs.writeFileSync(
-        mainHeaderFile,
-        `#include <locale.h>
+      if (
+        writeIfChanged(
+          mainHeaderFile,
+          `#include <locale.h>
 #include <LCUI.h>
 #include <LCUI/main.h>
 ${[...router.includeCode, ...components.includeCode, ...router.globalCode].join("\n")}
@@ -67,7 +73,10 @@ static int app_run(void)
         return lcui_run();
 }
 `
-      );
+        )
+      ) {
+        compiler.changedOutputs.add(mainHeaderFile);
+      }
       runXMake(compiler);
     });
   }

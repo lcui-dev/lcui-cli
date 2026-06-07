@@ -56,6 +56,38 @@ lcui build
 lcui build app/page.tsx
 ```
 
+### 增量编译
+
+`lcui build` 默认是增量的。编译器会在 `.lcui/build/manifest.json` 持久化一份
+构建清单，为每一个源文件记录：
+
+- 源文件内容的 `sha256`
+- 该文件命中的 loader 链与选项
+- 各 loader 实际读取过的依赖文件（如 import、`@use`/`@import`、
+  `postcss.config.js`、`tailwind.config.js` 等）
+- 该入口产出的所有产物（`.mjs`、组件 `.c`/`.h`、复制到 `dist/` 的资源）以及
+  它们的 `sha256`
+
+下一次 build 时，只有源/依赖/产物 hash 不匹配的入口才会真正走 loader 链，
+其它入口直接复用已有产物，跳过编译。
+
+此外，所有写盘动作都走 `writeIfChanged`：新内容与磁盘上的旧内容字节一致时
+就不会写入，这样依赖 `mtime` 判定的下游工具（典型的是 `xmake`）不会被"假
+改动"误触发，从而避免不必要的 C 全量编译。
+
+可用选项：
+
+- `--force` — 忽略 manifest，强制重编所有文件。怀疑缓存失真，或修改了依赖
+  追踪覆盖不到的文件时使用。
+- `--skip-xmake` — 编译完成后不调用 `xmake`，即便存在 `xmake.lua`。
+
+以下情况会自动让整张 manifest 作废：
+
+- 升级 `@lcui/cli`
+- 编译器配置发生改变
+- 根目录下的 `tsconfig.json`、`postcss.config.*`、`tailwind.config.*` 或
+  `lcui.config.js` 发生变化
+
 ## 许可
 
 [MIT](../../LICENSE)

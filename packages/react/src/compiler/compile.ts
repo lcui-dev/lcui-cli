@@ -147,7 +147,7 @@ function transformNodeChildren(node: Node, rawChildren: ReactNode) {
 }
 
 function transformReactNode(el: ReactNode, isRoot = false): Node | undefined {
-  let node = createNode();
+  const node = createNode();
   node.isRoot = isRoot;
 
   if (!React.isValidElement(el)) {
@@ -185,7 +185,7 @@ function transformReactNode(el: ReactNode, isRoot = false): Node | undefined {
 
   Object.keys(props).forEach((propKey) => {
     let key = propKey;
-    let value = props[key];
+    const value = props[key];
 
     if (key in attrMap) {
       key = attrMap[key];

@@ -317,7 +317,6 @@ function compileFunction({
   signature: string;
   body: string[];
 }) {
-  const indent = " ".repeat(8);
   return [
     signature,
     "{",

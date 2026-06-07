@@ -1,6 +1,7 @@
 import fs from "fs-extra";
 import path from "path";
-import { pathToFileURL } from "url";
+import crypto from "crypto";
+import { fileURLToPath, pathToFileURL } from "url";
 import winston from "winston";
 import compilerConfig from "./config.js";
 import CSSLoader from "./css-loader.js";
@@ -12,6 +13,13 @@ import XMLLoader from "./xml-loader.js";
 import YAMLLoader from "./yaml-loader.js";
 import JSONLoader from "./json-loader.js";
 import { resolveRootDir } from "../utils.js";
+import { writeIfChanged, hashContent, hashFile, hashJSON } from "./fs-cache.js";
+import {
+  BuildManifest,
+  ManifestEntry,
+  ManifestOutput,
+  hashConfig,
+} from "./build-manifest.js";
 import {
   AnyLoader,
   CompilerContext,
@@ -40,6 +48,66 @@ const loaderMap: Record<string, AnyLoader> = {
   "ts-loader": TsLoader,
   "json-loader": JSONLoader,
 };
+
+/** 读取 @lcui/cli 自身的版本号，作为 manifest configHash 的一部分。 */
+function readCliVersion(): string {
+  try {
+    // dist 目录: packages/cli/lib/compiler/index.js → ../../package.json
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const pkg = fs.readJSONSync(path.resolve(here, "..", "..", "package.json")) as {
+      version?: string;
+    };
+    return pkg.version || "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
+}
+
+/** 把 module.rules[i].use 摊平成只含名字与选项的稳定形态，参与 configHash。 */
+function serializeRuleUse(use: ModuleRuleUseConfig): unknown {
+  const norm = (item: string | LoaderRule): unknown => {
+    if (typeof item === "string") return { loader: item };
+    return {
+      loader: typeof item.loader === "string" ? item.loader : item.loader.name,
+      options: item.options ?? {},
+    };
+  };
+  if (typeof use === "string") return [norm(use)];
+  if (Array.isArray(use)) return use.map(norm);
+  return [norm(use)];
+}
+
+/**
+ * 把项目根下常见的"会影响编译产物"的配置文件全部 hash。
+ * 任意一个变化都会让整张 manifest 作废，迫使全量重编。
+ *
+ * 这些文件不能用模块 import 关系跟踪到（它们由 loader 内部 await postcssrc 等动态加载），
+ * 因此放进 configHash 是最稳妥的做法。
+ */
+function readProjectConfigHashes(rootContext: string): Record<string, string> {
+  const candidates = [
+    "tsconfig.json",
+    "postcss.config.js",
+    "postcss.config.cjs",
+    "postcss.config.mjs",
+    "postcss.config.ts",
+    ".postcssrc",
+    ".postcssrc.js",
+    ".postcssrc.json",
+    "tailwind.config.js",
+    "tailwind.config.cjs",
+    "tailwind.config.mjs",
+    "tailwind.config.ts",
+    "lcui.config.js",
+  ];
+  const out: Record<string, string> = {};
+  for (const name of candidates) {
+    const p = path.join(rootContext, name);
+    const h = hashFile(p);
+    if (h) out[name] = h;
+  }
+  return out;
+}
 
 function getDirs() {
   const rootContext = resolveRootDir();
@@ -211,6 +279,43 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
   const logFile = path.join(options.buildDir, "compile.log");
   const logger = createLogger(logFile, options.verbose);
 
+  // ---- 增量编译基础设施 ----
+  const cliVersion = readCliVersion();
+  const configHash = hashConfig({
+    cliVersion,
+    // compilerConfig 含 plugins 实例，无法直接 JSON 序列化；
+    // 用 rule.test.source / loader.name 这种稳定特征代替结构体序列化。
+    rules: compilerConfig.module.rules.map((r) => ({
+      test: r.test instanceof Function ? `fn:${r.test.toString()}` : `re:${r.test.source}`,
+      use: serializeRuleUse(r.use),
+    })),
+    resolve: compilerConfig.resolve,
+    plugins: (compilerConfig.plugins || []).map((p) => ({
+      name: (p as { name?: string }).name ?? p.constructor.name,
+    })),
+    // 项目级配置文件内容也参与 hash：tsconfig / postcss.config 改了就整体作废
+    projectConfigs: readProjectConfigHashes(options.rootContext),
+  });
+  const manifest = new BuildManifest(
+    path.join(options.buildDir, "manifest.json"),
+    cliVersion,
+    configHash
+  );
+  if (!options.force) {
+    manifest.load();
+  } else {
+    logger.info("Force rebuild: ignoring existing build manifest.");
+  }
+  // 本次 build 真实写盘的产物列表，用于决定是否调用 xmake
+  const changedOutputs = new Set<string>();
+  // 记录每个入口在本次 build 中产出的产物，用于回写 manifest
+  const pendingEntryOutputs = new Map<string, ManifestOutput[]>();
+  // 记录每个入口在本次 build 中收集到的依赖（通过 importModule 或 addDependency）
+  const pendingEntryDeps = new Map<string, Set<string>>();
+  // 跳过 loader 链时，把 manifest 里记录的依赖原样写回 pendingEntryDeps，
+  // 确保下一轮 manifest 仍包含完整依赖图。
+  const skippedEntries = new Set<string>();
+
   function createHook<Args extends unknown[]>(): Hook<Args> {
     const taps: { name: string; fn: HookHandler<Args> }[] = [];
     return {
@@ -240,6 +345,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
       loadModule: createHook<[string, Record<string, unknown>]>(),
       done: createHook<[]>(),
     },
+    changedOutputs,
   };
 
   if (Array.isArray(compilerConfig.plugins)) {
@@ -357,9 +463,18 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     context.logger.debug(`Generating ${path.relative(context.rootContext, cache.outputPath)}`);
     try {
       const content = await moduleGenerator();
-      fs.writeFileSync(cache.outputPath, content);
+      const wrote = writeIfChanged(cache.outputPath, content);
+      if (wrote) {
+        changedOutputs.add(cache.outputPath);
+      }
+      recordEntryOutput(context, cache.outputPath, content);
       try {
-        cache.resolve((await import(pathToFileURL(cache.outputPath).href)) as Module);
+        // Add content hash to URL to bust Node's ESM cache.
+        // Without this, the same URL always returns the cached module object,
+        // causing stale content to be used in subsequent builds.
+        const contentHash = crypto.createHash('md5').update(content).digest('hex').slice(0, 8);
+        const importUrl = pathToFileURL(cache.outputPath).href + `?v=${contentHash}`;
+        cache.resolve((await import(importUrl)) as Module);
       } catch (importErr) {
         const ie = toError(importErr);
         const wrapped = wrapImportError(modulePath, cache.outputPath, ie);
@@ -374,9 +489,13 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     }
   }
 
-  async function loadModule(resourcePath: string, loaders: ResolvedLoaderRule[]) {
+  async function loadModule(
+    resourcePath: string,
+    loaders: ResolvedLoaderRule[],
+    entryPath: string
+  ) {
     const data: Record<string, unknown> = {};
-    const context = createCompilerContext(resourcePath);
+    const context = createCompilerContext(resourcePath, entryPath);
     const content: LoaderInput = await loaders.reduceRight<Promise<LoaderInput>>(
       async (inputPromise, config) => {
         const input = await inputPromise;
@@ -388,6 +507,9 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
                 data,
                 getOptions<T = LoaderOptions>(): T {
                   return config.options as unknown as T;
+                },
+                addDependency(filePath: string) {
+                  recordEntryDependency(entryPath, filePath);
                 },
               },
               input
@@ -408,6 +530,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     return {
       content,
       resourceOutputPath: context.resourceOutputPath,
+      data,
     };
   }
 
@@ -417,6 +540,11 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     context: CompilerContext
   ): Promise<Module> {
     const resolvedPath = resolveModuleImportPath(resourcePath, context);
+    // 把"父入口 → 这个被引入资源"作为依赖记录下来。
+    // 注意：这里把"被解析后的真实路径"作为依赖目标，便于下次 hash 校验。
+    if (context.entryPath && context.entryPath !== resolvedPath) {
+      recordEntryDependency(context.entryPath, resolvedPath);
+    }
     const cache = useModuleCache(resolvedPath, context);
 
     if (cache.state !== "pending") {
@@ -438,7 +566,8 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     }
     try {
       context.logger.info(`Compiling ${path.relative(context.rootContext, resolvedPath)}`);
-      const result = await loadModule(resolvedPath, loaders);
+      // 子模块自己也是一个 entry：它的依赖、产物都归属在 resolvedPath 名下。
+      const result = await loadModule(resolvedPath, loaders, resolvedPath);
       if (result.content !== undefined) {
         context.logger.debug(
           `Generating ${path.relative(context.rootContext, result.resourceOutputPath)}`
@@ -448,10 +577,24 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
         // 将由 fs.writeFileSync 自身抛错，保留原行为。
         // TODO: 考虑在此显式 narrow 并给出更明确的错误信息，或在 loader 链规范上强制末端为 string|Buffer。
         const writable = result.content as string | NodeJS.ArrayBufferView;
-        fs.writeFileSync(result.resourceOutputPath, writable);
+        const wrote = writeIfChanged(result.resourceOutputPath, writable);
+        if (wrote) {
+          changedOutputs.add(result.resourceOutputPath);
+        }
+        recordEntryOutput(
+          { ...context, entryPath: resolvedPath } as CompilerContext,
+          result.resourceOutputPath,
+          writable
+        );
       }
+      // entry 编译完成后把本次收集到的依赖 / 产物 / componentConfig 落盘到 manifest
+      finalizeEntry(resolvedPath, loaders, result.data);
       try {
-        cache.resolve((await import(pathToFileURL(cache.outputPath).href)) as Module);
+        // Add content hash to URL to bust Node's ESM cache.
+        const contentStr = typeof result.content === 'string' ? result.content : JSON.stringify(result.content ?? '');
+        const contentHash = crypto.createHash('md5').update(contentStr).digest('hex').slice(0, 8);
+        const importUrl = pathToFileURL(cache.outputPath).href + `?v=${contentHash}`;
+        cache.resolve((await import(importUrl)) as Module);
       } catch (importErr) {
         const ie = toError(importErr);
         throw wrapImportError(resolvedPath, cache.outputPath, ie);
@@ -468,7 +611,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     return cache.exports;
   }
 
-  function createCompilerContext(resourcePath: string): CompilerContext {
+  function createCompilerContext(resourcePath: string, entryPath?: string): CompilerContext {
     let outputPath = resourcePath;
     if (resourcePath.startsWith(options.modulesDir)) {
       outputPath = path.join(
@@ -483,6 +626,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
       ...options,
       logger,
       resourcePath,
+      entryPath: entryPath ?? resourcePath,
       resourceOutputPath: `${outputPath}.h`,
       context: path.dirname(resourcePath),
       emitFile(name, content) {
@@ -492,10 +636,13 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
           fs.mkdirpSync(outputDir);
         }
         logger.info(`Emitting ${name}`);
-        fs.writeFileSync(
-          outputPath,
-          typeof content === "string" ? content : new Uint8Array(content)
-        );
+        const writable =
+          typeof content === "string" ? content : new Uint8Array(content);
+        const wrote = writeIfChanged(outputPath, writable);
+        if (wrote) {
+          changedOutputs.add(outputPath);
+        }
+        recordEntryOutput(context, outputPath, writable);
       },
       emitError(error) {
         printError(resourcePath, error);
@@ -531,6 +678,147 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     return resolveLoaders(matchedRule.use);
   }
 
+  /** 记录该 entry 输出了一个产物（用于回写 manifest）。 */
+  function recordEntryOutput(
+    context: CompilerContext,
+    outputPath: string,
+    content: string | NodeJS.ArrayBufferView
+  ) {
+    const entry = context.entryPath;
+    if (!entry) return;
+    if (!pendingEntryOutputs.has(entry)) {
+      pendingEntryOutputs.set(entry, []);
+    }
+    pendingEntryOutputs.get(entry)!.push({
+      path: outputPath,
+      hash: hashContent(content),
+    });
+  }
+
+  /** 记录该 entry 读取了某个外部依赖文件（用于回写 manifest）。 */
+  function recordEntryDependency(entryPath: string, depPath: string) {
+    if (!entryPath || !depPath) return;
+    if (entryPath === depPath) return;
+    if (!pendingEntryDeps.has(entryPath)) {
+      pendingEntryDeps.set(entryPath, new Set());
+    }
+    pendingEntryDeps.get(entryPath)!.add(depPath);
+  }
+
+  /** entry 编译结束后，把 sourceHash + deps + outputs 落到 manifest。 */
+  function finalizeEntry(
+    entryPath: string,
+    loaders: ResolvedLoaderRule[],
+    data: Record<string, unknown>
+  ) {
+    if (!fs.existsSync(entryPath)) return;
+    const sourceHash = hashFile(entryPath);
+    if (!sourceHash) return;
+
+    const deps: Record<string, string> = {};
+    const collected = pendingEntryDeps.get(entryPath);
+    if (collected) {
+      for (const dep of collected) {
+        const h = hashFile(dep);
+        if (h) deps[dep] = h;
+      }
+    }
+    const outputs = pendingEntryOutputs.get(entryPath) ?? [];
+    const entry: ManifestEntry = {
+      sourceHash,
+      loaders: loaders.map((l) => l.loader.name || "anonymous"),
+      loaderOptionsHash: hashJSON(loaders.map((l) => ({ name: l.loader.name, options: l.options }))),
+      dependencies: deps,
+      outputs,
+      componentConfig: extractComponentConfigForEntry(entryPath, data),
+    };
+    manifest.set(entryPath, entry);
+  }
+
+  /**
+   * ts-loader 会把"该入口产出的 component 元数据"写到 data.components 里，
+   * 其 key 是 path.relative(rootContext, resourcePath)。我们只取属于当前 entry 的那一条。
+   */
+  function extractComponentConfigForEntry(
+    entryPath: string,
+    data: Record<string, unknown>
+  ): unknown {
+    if (!data.components || typeof data.components !== "object") return undefined;
+    const components = data.components as Record<string, unknown>;
+    const key = path.relative(options.rootContext, entryPath);
+    if (key in components) {
+      return { [key]: components[key] };
+    }
+    return undefined;
+  }
+
+  /**
+   * 增量短路：若 manifest 里该 entry 的源/依赖/产物全部命中，则跳过 loader 链。
+   * 跳过时仍需把 componentConfig merge 回 AppComponentsCompiler（通过触发 loadModule 钩子）。
+   */
+  async function tryReuseEntry(
+    entryPath: string,
+    loaders: ResolvedLoaderRule[]
+  ): Promise<boolean> {
+    if (options.force) return false;
+    const cached = manifest.get(entryPath);
+    if (!cached) return false;
+    const sourceHash = hashFile(entryPath);
+    if (!sourceHash) return false;
+    const loaderOptionsHash = hashJSON(
+      loaders.map((l) => ({ name: l.loader.name, options: l.options }))
+    );
+    if (
+      cached.sourceHash !== sourceHash ||
+      cached.loaderOptionsHash !== loaderOptionsHash
+    ) {
+      return false;
+    }
+    if (!manifest.validateDependencies(cached)) return false;
+    if (!manifest.validateOutputs(cached)) return false;
+
+    // 命中：复用产物，无需再跑 loader
+    logger.debug(`Skip ${path.relative(options.rootContext, entryPath)} (up-to-date)`);
+
+    // 把 manifest 里记录的 componentConfig 再喂给插件链，
+    // 保证 AppPlugin 在 done 阶段能拿到该入口的 components 信息。
+    if (cached.componentConfig && typeof cached.componentConfig === "object") {
+      await compiler.hooks.loadModule.call(entryPath, {
+        components: cached.componentConfig as Record<string, unknown>,
+      });
+    }
+    skippedEntries.add(entryPath);
+    // 把已有依赖与产物原样保留到本轮 pending，让 finalize 时 manifest 仍能完整保存。
+    pendingEntryOutputs.set(entryPath, [...cached.outputs]);
+    const deps = new Set<string>();
+    Object.keys(cached.dependencies).forEach((d) => deps.add(d));
+    pendingEntryDeps.set(entryPath, deps);
+    // 把 outputPath 加进 moduleCacheMap，让本进程内其他入口若 import 它能拿到 metadata。
+    primeModuleCache(entryPath, cached);
+    return true;
+  }
+
+  /**
+   * 跳过编译的 entry 仍需要在 moduleCacheMap 中有一份"已 loaded"的占位，
+   * 否则其他入口 importModule(它) 时会触发重新计算 outputPath / 重读 mjs。
+   *
+   * 这里只填一份最小可用的 Module：default=null，metadata 从 cached.outputs 里挑出 .mjs 一份作为
+   * outputPath。若该 .mjs 不存在则不做预热（让真正的 importModule 走原逻辑触发重编）。
+   */
+  function primeModuleCache(entryPath: string, cached: ManifestEntry) {
+    const context = createCompilerContext(entryPath, entryPath);
+    const cacheItem = useModuleCache(entryPath, context);
+    if (cacheItem.state !== "pending") return;
+    const mjs = cached.outputs.find((o) => o.path.endsWith(".mjs"));
+    if (!mjs || !fs.existsSync(mjs.path)) return;
+    cacheItem.state = "loading";
+    // 仍然走一次真实 import，确保 .mjs 里的副作用（注册组件等）被执行
+    import(pathToFileURL(mjs.path).href).then(
+      (mod) => cacheItem.resolve(mod as Module),
+      (err) => cacheItem.reject(toError(err))
+    );
+  }
+
   async function compileFile(filePath: string): Promise<unknown> {
     if (fs.statSync(filePath).isDirectory()) {
       return Promise.all(
@@ -539,7 +827,11 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     }
     const loaders = matchLoaders(filePath);
     if (loaders.length > 0) {
-      await importModule(filePath, loaders, createCompilerContext(filePath));
+      // 先尝试增量命中
+      if (await tryReuseEntry(filePath, loaders)) {
+        return undefined;
+      }
+      await importModule(filePath, loaders, createCompilerContext(filePath, filePath));
     }
     return undefined;
   }
@@ -559,6 +851,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
       }
     }
     await compiler.hooks.done.call();
+    manifest.save();
     logger.info("Compilation completed!");
   } catch (err) {
     logger.error("Compilation failed!");

@@ -1,6 +1,7 @@
 import path from "path";
 import fs from "fs-extra";
 import { CompilerOptions, ComponentConfig } from "../types.js";
+import { writeIfChanged } from "../compiler/fs-cache.js";
 
 export class AppComponentsCompiler {
   components: Record<string, ComponentConfig>;
@@ -26,7 +27,8 @@ export class AppComponentsCompiler {
   }
 
   saveCache() {
-    fs.writeJSONSync(this.dataFile, this.components, { spaces: 2 });
+    // 内容相同则不写盘，避免抖动 mtime 触发外部观察者（如 xmake）误以为有改动。
+    writeIfChanged(this.dataFile, JSON.stringify(this.components, null, 2) + "\n");
   }
 
   clearCache() {

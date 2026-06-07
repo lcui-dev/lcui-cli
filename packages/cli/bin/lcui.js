@@ -33,6 +33,16 @@ program
   .description("Build the project, or build specified file")
   .argument("[filePath]", "File or directory")
   .option("--verbose", "More detailed log output")
-  .action(wrapAction(compile));
+  .option("--force", "Ignore build cache and rebuild everything")
+  .option("--skip-xmake", "Do not invoke xmake after compilation")
+  .action(
+    wrapAction((filePath, opts) =>
+      compile(filePath, {
+        verbose: opts.verbose,
+        force: opts.force,
+        skipXMake: opts.skipXmake,
+      })
+    )
+  );
 
 program.version(version).parse(process.argv);

@@ -54,6 +54,10 @@ const CSSLoader: Loader<string | Buffer, string> = async function CSSLoader(
     const dir = path.dirname(loader.resourcePath);
     const loaded = await postcssrc({ cwd: dir }, dir);
     loaded.plugins.forEach((plugin) => processor.use(plugin));
+    // 把 postcss 配置文件本身记为依赖：用户改 tailwind/postcss 配置时能正确失效缓存。
+    if (loaded.file) {
+      loader.addDependency(loaded.file);
+    }
   } catch (err) {
     const e = toError(err);
     // 项目没有 postcss 配置不是错误，与历史行为一致地静默跳过。
@@ -62,6 +66,15 @@ const CSSLoader: Loader<string | Buffer, string> = async function CSSLoader(
     }
   }
   const result = await processor.process(cssText, { from: loader.resourcePath }).async();
+
+  // postcss 插件可通过 message.type === "dependency" / "dir-dependency" 报告读了哪些文件
+  // （typical: postcss-import / tailwind 等）。把它们也写进依赖图。
+  for (const msg of result.messages) {
+    const file = (msg as unknown as { file?: unknown }).file;
+    if (msg.type === "dependency" && typeof file === "string") {
+      loader.addDependency(file);
+    }
+  }
 
   const ident = `css_str_${path.parse(this.resourcePath).name.replace(/[^a-zA-Z0-9]/g, "_")}`;
 
