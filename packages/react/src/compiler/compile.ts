@@ -222,9 +222,28 @@ function transformReactNode(el: ReactNode, isRoot = false): Node | undefined {
     transformNodeStyle(node, props.style);
   }
   handlerNames.forEach((name) => {
-    transformEventHandler(node, name.substring(2).toLocaleLowerCase(), props[name]);
+    transformEventHandler(node, resolveLCUIEventName(name), props[name]);
   });
   return node;
+}
+
+/**
+ * React 事件 prop 名（如 `onClick`、`onDoubleClick`、`onChange`）到 LCUI 事件名
+ * （`ui_event_type_t` 对应的字符串）之间的映射。
+ *
+ * 默认规则：`onXxx` → `"xxx"`（去掉 on 前缀后整段小写）。这条规则在大多数
+ * 事件上能命中（onClick → "click"、onMouseDown → "mousedown"、onChange →
+ * "change" 等），但对少数 React 与 LCUI 命名不一致的事件需要显式翻译。
+ * 该表把这些差异收敛到一处，方便后续 LCUI 增减事件时统一维护。
+ */
+const REACT_TO_LCUI_EVENT_NAME: Record<string, string> = {
+  // React: doubleclick → LCUI: UI_EVENT_DBLCLICK / "dblclick"
+  doubleclick: "dblclick",
+};
+
+function resolveLCUIEventName(propName: string): string {
+  const lower = propName.substring(2).toLocaleLowerCase();
+  return REACT_TO_LCUI_EVENT_NAME[lower] ?? lower;
 }
 
 function transformEventHandler(node: Node, eventName: string, handler: string | Function) {

@@ -1,5 +1,7 @@
 /// <reference path="../types.d.ts" />
 
+import "./jsx-augment.js";
+
 import React from "react";
 
 export * from "./compiler/index.js";

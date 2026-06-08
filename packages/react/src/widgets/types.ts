@@ -17,6 +17,13 @@ export interface LinkAttributes extends WidgetBaseAttributes {
 
 export interface TextInputAttributes extends WidgetBaseAttributes {
   placeholder?: string;
+  /**
+   * 文本变化事件。textinput widget 在内部消化用户输入（`UI_EVENT_TEXTINPUT`）
+   * 并更新文本内容后，对外派发 `"change"` 事件。
+   *
+   * 值既可以是 React 风格的 form 事件回调，也可以是 C 函数名（string）。
+   */
+  onChange?: React.FormEventHandler<HTMLElement> | string;
 }
 
 export interface ScrollbarAttributes extends WidgetBaseAttributes {
@@ -68,4 +75,6 @@ export interface RouterLinkProps extends WidgetBaseProps {
 
 export interface TextInputProps extends WidgetBaseProps {
   placeholder?: string;
+  /** 同 TextInputAttributes.onChange，详见其 JSDoc。 */
+  onChange?: React.FormEventHandler<HTMLElement> | string;
 }
