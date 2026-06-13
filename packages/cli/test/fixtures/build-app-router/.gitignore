@@ -3,7 +3,6 @@
 
 .lcui/
 dist/
-vendor.node_modules/
 node_modules/
 
 # Loader emits *.h / *.c next to each source file, plus main.c/main.h.

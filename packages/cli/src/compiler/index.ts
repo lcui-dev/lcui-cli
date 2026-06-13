@@ -124,7 +124,7 @@ function getDirs() {
     appDir: path.join(rootContext, "app"),
     sourceDir: path.join(rootContext, "src"),
     modulesDir: path.join(rootContext, "node_modules"),
-    modulesOutputDir: mkdir(path.join(rootContext, "vendor.node_modules")),
+    modulesOutputDir: mkdir(path.join(rootContext, ".lcui/build/[modules]")),
   };
 }
 

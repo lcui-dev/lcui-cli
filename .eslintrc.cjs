@@ -18,7 +18,6 @@ module.exports = {
   extends: ["eslint:recommended"],
   ignorePatterns: [
     "node_modules/",
-    "vendor.node_modules/",
     "lib/",
     "dist/",
     "build/",

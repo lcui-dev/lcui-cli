@@ -49,7 +49,6 @@ export function ensureLcuiReact(fixtureDir) {
 export function cleanGenerated(fixtureDir, sourceSubdir) {
   fs.removeSync(path.join(fixtureDir, ".lcui"));
   fs.removeSync(path.join(fixtureDir, "dist"));
-  fs.removeSync(path.join(fixtureDir, "vendor.node_modules"));
   const sourceDir = path.join(fixtureDir, sourceSubdir);
   if (fs.existsSync(sourceDir)) {
     fs.readdirSync(sourceDir).forEach((name) => {
