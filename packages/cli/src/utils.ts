@@ -11,19 +11,20 @@ export function getResourceLoaderName(fileName: string, defaultComponentName?: s
   return `ui_load_${ident}_resources`;
 }
 
-const COMPONENT_DIRS = new Set(["components", "widgets"]);
-
+/**
+ * 解析 app 路由下的 page.tsx / layout.tsx 路径，得到：
+ * - `ident`：用作 C 标识符的 widget 名（由目录 + 文件名拼接，再 toIdent）。
+ *   例如 `app/settings/page.tsx` → `settings_page`、`app/page.tsx` → `root_page`。
+ * - `path`：对应的路由路径，`[foo]` 段会转成 `:foo`。
+ *
+ * 注意：本函数只服务 `page.tsx` / `layout.tsx` 这类路由文件。其它 tsx 文件
+ * （包括 `components/xxx.tsx`、`examples/foo/index.tsx`）的命名由
+ * ts-loader 走 `displayName || function.name` 这条分支决定，避免出现
+ * "原型名与被 import 后的 widget tag 名不一致" 的问题。
+ */
 export function parsePageRoute(context: string, filePath: string) {
   const { dir, name } = path.parse(path.relative(context, filePath));
-  const dirParts = dir ? dir.split(path.sep) : [];
-  const isPageOrLayout = name === "page" || name === "layout";
-  let ident: string;
-  if (!isPageOrLayout && dirParts.some((p) => COMPONENT_DIRS.has(p))) {
-    const stripped = dirParts.filter((p) => !COMPONENT_DIRS.has(p));
-    ident = stripped.length > 0 ? toIdent(`${stripped.join(path.sep)}_${name}`) : name;
-  } else {
-    ident = toIdent(`${dir || "root"}_${name}`);
-  }
+  const ident = toIdent(`${dir || "root"}_${name}`);
   // Convert path, e.g. "/[foo]/bar" to "/:foo/bar"
   return {
     path: `/${dir.replaceAll(path.win32.sep, "/").replace(/\[([^\]]+)\]/g, ":$1")}`,

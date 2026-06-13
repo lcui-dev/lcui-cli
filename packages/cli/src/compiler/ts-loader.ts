@@ -11,6 +11,49 @@ function isComponentFunc(name: string) {
   return name.charAt(0) >= "A" && name.charAt(0) <= "Z";
 }
 
+/**
+ * 路径派生命名（`parsePageRoute`）仅用于 `page.tsx` / `layout.tsx`：
+ * 这两类文件的默认导出函数名通常都叫 `Page` / `Layout`，必须依赖路径
+ * 才能产生唯一标识。其它 tsx 文件统一用 `displayName || function.name`，
+ * 这样组件在被 import 时，JSX runtime 给它生成的 widget tag
+ * （也来自 `displayName || function.name`，见 `@lcui/react` 的 compile.ts）
+ * 与该组件注册的 prototype 名一致，不会再出现 mismatch。
+ */
+function shouldDeriveNameFromRoute(resourcePath: string) {
+  const { name } = path.parse(resourcePath);
+  return name === "page" || name === "layout";
+}
+
+/**
+ * 跨入口共享的组件名注册表，用于检测多个 tsx 文件产生相同 `snake_case` 名
+ * 时的冲突。按 `rootContext` 分桶，避免不同项目之间互相干扰；同一项目里
+ * 同一 `resourcePath` 重复注册（例如增量编译中复用 entry 不会真的进 loader，
+ * 但 watch 模式 / 单测多次构建会重复进入）视作幂等，不报错。
+ */
+const componentNameRegistries = new Map<string, Map<string, string>>();
+
+function registerComponentName(
+  rootContext: string,
+  componentName: string,
+  resourcePath: string
+) {
+  let registry = componentNameRegistries.get(rootContext);
+  if (!registry) {
+    registry = new Map();
+    componentNameRegistries.set(rootContext, registry);
+  }
+  const existing = registry.get(componentName);
+  if (existing && existing !== resourcePath) {
+    throw new Error(
+      `Duplicate component widget name "${componentName}" generated from two files:\n` +
+        `  - ${path.relative(rootContext, existing)}\n` +
+        `  - ${path.relative(rootContext, resourcePath)}\n` +
+        `Rename one of the default-exported components (or set displayName) to make them unique.`
+    );
+  }
+  registry.set(componentName, resourcePath);
+}
+
 export default async function TsLoader(this: LoaderContext, content: LoaderInput) {
   const loader = this;
   const modules: Promise<Module>[] = [];
@@ -97,15 +140,39 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
   );
   const options = this.getOptions();
   const { dir, name, base } = path.parse(loader.resourcePath);
-  let defaultComponentName =
-    defaultComponentFunc?.displayName || defaultComponentFunc?.name || name;
 
-  const isInAppDir = loader.appDir && loader.resourcePath.startsWith(loader.appDir + path.sep);
-  if (options.target === "AppRouter" || isInAppDir) {
+  // 默认沿用导出函数的 displayName / 函数名；缺失时回退到文件名。
+  // 唯一会"用路径覆盖函数名"的情况是 page.tsx / layout.tsx：
+  // 它们的 default export 通常都叫 Page / Layout，必须用路径才能唯一区分。
+  // 其它 tsx 文件保留函数名，这样在被别处 import 时（@lcui/react 的 JSX
+  // 编译也走 displayName || function.name），widget tag 与 prototype 名一致。
+  const defaultFuncName = defaultComponentFunc?.displayName || defaultComponentFunc?.name;
+  const useRouteIdent =
+    options.target === "AppRouter" ||
+    (loader.appDir &&
+      loader.resourcePath.startsWith(loader.appDir + path.sep) &&
+      shouldDeriveNameFromRoute(loader.resourcePath));
+
+  let defaultComponentName: string;
+  if (useRouteIdent) {
     defaultComponentName = parsePageRoute(loader.appDir, loader.resourcePath).ident;
+  } else if (defaultFuncName) {
+    defaultComponentName = defaultFuncName;
+  } else {
+    // 匿名默认导出（例如 `export default () => ...`）拿不到稳定标识，
+    // 在被 import 时也无法正确匹配 widget tag。要求用户显式命名。
+    throw new Error(
+      `Default-exported component in ${path.relative(
+        loader.rootContext,
+        loader.resourcePath
+      )} has no usable name. ` +
+        `Use a named function/declaration (e.g. \`export default function Foo() {}\`) ` +
+        `or assign a displayName so it can be referenced as a widget.`
+    );
   }
 
   const componentName = snakeCase(defaultComponentName);
+  registerComponentName(loader.rootContext, componentName, loader.resourcePath);
 
   const result = (componentList as React.FC[]).map(
     (component) =>

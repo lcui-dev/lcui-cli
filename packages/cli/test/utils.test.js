@@ -33,33 +33,30 @@ describe("parsePageRoute", () => {
     assert.strictEqual(result.ident, "settings_page");
   });
 
-  it('app/components/page.tsx should keep dir prefix → "components_page"', () => {
+  it('should derive ident "settings_layout" for app/settings/layout.tsx', () => {
+    const result = parsePageRoute(appDir, path.join(appDir, "settings", "layout.tsx"));
+    assert.strictEqual(result.ident, "settings_layout");
+    assert.strictEqual(result.path, "/settings");
+  });
+
+  it("should convert dynamic segments to colon syntax", () => {
+    const result = parsePageRoute(appDir, path.join(appDir, "users", "[id]", "page.tsx"));
+    assert.strictEqual(result.ident, "users_id_page");
+    assert.strictEqual(result.path, "/users/:id");
+  });
+
+  // 以下用例锁定新规则：parsePageRoute 不再对 components / widgets 目录做特殊处理。
+  // 该函数现在只服务 page.tsx / layout.tsx 路由文件；其它 tsx 的命名由
+  // ts-loader 走 `displayName || function.name` 这条分支决定，不再走这里。
+  // 即便外部传入这类路径，也只是简单 `<dir>_<name>` 拼接。
+  it("no longer strips components dir — components/page.tsx → components_page", () => {
     const result = parsePageRoute(appDir, path.join(appDir, "components", "page.tsx"));
     assert.strictEqual(result.ident, "components_page");
   });
 
-  it('app/components/button.tsx should strip "components" → "button"', () => {
-    const result = parsePageRoute(appDir, path.join(appDir, "components", "button.tsx"));
-    assert.strictEqual(result.ident, "button");
-  });
-
-  it('app/chat/components/message.tsx should strip "components" → "chat_message"', () => {
-    const result = parsePageRoute(appDir, path.join(appDir, "chat", "components", "message.tsx"));
-    assert.strictEqual(result.ident, "chat_message");
-  });
-
-  it('app/widgets/page.tsx should keep dir prefix → "widgets_page"', () => {
-    const result = parsePageRoute(appDir, path.join(appDir, "widgets", "page.tsx"));
-    assert.strictEqual(result.ident, "widgets_page");
-  });
-
-  it('app/widgets/button.tsx should strip "widgets" → "button"', () => {
-    const result = parsePageRoute(appDir, path.join(appDir, "widgets", "button.tsx"));
-    assert.strictEqual(result.ident, "button");
-  });
-
-  it('app/chat/widgets/message.tsx should strip "widgets" → "chat_message"', () => {
-    const result = parsePageRoute(appDir, path.join(appDir, "chat", "widgets", "message.tsx"));
-    assert.strictEqual(result.ident, "chat_message");
+  it("no longer strips widgets dir — widgets/layout.tsx → widgets_layout", () => {
+    const result = parsePageRoute(appDir, path.join(appDir, "widgets", "layout.tsx"));
+    assert.strictEqual(result.ident, "widgets_layout");
   });
 });
+
