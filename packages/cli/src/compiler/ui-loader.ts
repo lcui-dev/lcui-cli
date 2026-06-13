@@ -250,16 +250,12 @@ async function compile(
           const styleObj = attrs.style;
           if (styleObj && typeof styleObj === "object") {
             currentSchema.templateLines.push(
-              ...Object.entries(styleObj as Record<string, unknown>).map(([key, value]) => {
-                if (typeof value === "number") {
-                  return `ui_widget_set_style_unit_value(${ident}, css_prop_${toSnakeCase(
-                    key
-                  )}, ${value}, CSS_UNIT_PX);`;
-                }
-                return `ui_widget_set_style_string(${ident}), "${toDashCase(
-                  key
-                )}", ${JSON.stringify(value)});`;
-              })
+              ...Object.entries(styleObj as Record<string, unknown>).map(
+                ([key, value]) =>
+                  `ui_widget_set_style_string(${ident}, "${toDashCase(String(key))}", "${String(
+                    value
+                  )}");`
+              )
             );
           }
           break;

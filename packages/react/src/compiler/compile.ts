@@ -65,24 +65,32 @@ const toDashCase = (str: string) => str.replace(/[A-Z]/g, (letter) => `-${letter
 
 function transformNodeStyle(node: Node, style: Record<string, any>) {
   const ctx = getComponentContext();
-  const ref = allocRef(ctx, node);
+  const staticStyle: Record<string, string | number> = {};
+  const dynamicEntries: [string, ObjectBinding][] = [];
 
   Object.keys(style).forEach((key) => {
     const value = style[key];
     if (value === undefined) {
       return;
     }
-
-    const propKey = toDashCase(key);
-    let identify = `unknown_${typeof value}`;
-
     if (isObjectBinding(value)) {
-      identify = value.__meta__.name;
-    } else if (typeof value === "number" || typeof value == "string") {
-      identify = JSON.stringify(value);
+      dynamicEntries.push([toDashCase(key), value]);
+    } else if (typeof value === "number" || typeof value === "string") {
+      staticStyle[key] = value;
     }
-    ctx.body.push(`ui_widget_set_style_string(${ref.cName}, "${propKey}", ${identify})`);
   });
+
+  if (Object.keys(staticStyle).length > 0) {
+    node.attributes.style = staticStyle;
+  }
+  if (dynamicEntries.length > 0) {
+    const ref = allocRef(ctx, node);
+    dynamicEntries.forEach(([propKey, value]) => {
+      ctx.body.push(
+        `ui_widget_set_style_string(${ref.cName}, "${propKey}", ${value.__meta__.name})`
+      );
+    });
+  }
 }
 
 function transformNodeChildren(node: Node, rawChildren: ReactNode) {
