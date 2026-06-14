@@ -68,11 +68,18 @@ interface EventHandlerDeclaration {
   context: FunctionContext;
 }
 
+interface EventBinding {
+  target: string;
+  eventName: string;
+  handlerName: string;
+}
+
 export interface ComponentContext extends FunctionContext {
   kind: "ComponentContext";
   state: VariableDeclaration[];
   stateNames: string[];
   eventHandlers: EventHandlerDeclaration[];
+  eventBindings: EventBinding[];
   refs: string[];
   refNames: string[];
   headerFiles: Set<string>;
@@ -390,11 +397,9 @@ function compileComponentEventHandlers(ctx: ComponentContext) {
     }),
     compileComponentMethod({
       name: "react_init_events",
-      body: ctx.eventHandlers.map(
+      body: ctx.eventBindings.map(
         (item) =>
-          `ui_widget_on(${item.target}, "${item.eventName}", ${
-            typeof item.handler === "string" ? item.handler : `${ctx.name}_${item.context.name}`
-          }, w)`
+          `ui_widget_on(${item.target}, "${item.eventName}", ${item.handlerName}, w)`
       ),
     }),
   ].join("\n\n");

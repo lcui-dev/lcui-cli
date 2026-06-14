@@ -258,22 +258,22 @@ function transformEventHandler(node: Node, eventName: string, handler: string | 
   const ctx = getComponentContext();
   const ref = allocRef(ctx, node);
   let decl = ctx.eventHandlers.find((item) => item.handler == handler);
-  if (decl) {
-    return decl.context.name;
+  if (!decl) {
+    const name = ["handle", node.name, eventName, ctx.eventHandlers.length].join("_");
+    decl = {
+      target: ref.cName,
+      eventName,
+      handler,
+      context: createFunctionContext(name),
+    };
+    ctx.eventHandlers.push(decl);
+    if (handler instanceof Function) {
+      call(handler, decl.context);
+    }
   }
-
-  const name = ["handle", node.name, eventName, ctx.eventHandlers.length].join("_");
-  decl = {
-    target: ref.cName,
-    eventName,
-    handler,
-    context: createFunctionContext(name),
-  };
-  ctx.eventHandlers.push(decl);
-  if (handler instanceof Function) {
-    call(handler, decl.context);
-  }
-  return name;
+  const handlerName = typeof handler === "string" ? handler : `${ctx.name}_${decl.context.name}`;
+  ctx.eventBindings.push({ target: ref.cName, eventName, handlerName });
+  return decl.context.name;
 }
 
 function parseHookValueNames(funcStr: string, hook: string) {
@@ -309,6 +309,7 @@ export default function compile<T = {}>(
     state: [],
     refs: [],
     eventHandlers: [],
+    eventBindings: [],
     stateNames: parseHookValueNames(funcStr, "useState"),
     refNames: parseHookValueNames(funcStr, "useRef"),
     headerFiles: new Set(),
