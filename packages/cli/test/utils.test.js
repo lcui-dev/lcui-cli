@@ -49,6 +49,12 @@ describe("parsePageRoute", () => {
   // 该函数现在只服务 page.tsx / layout.tsx 路由文件；其它 tsx 的命名由
   // ts-loader 走 `displayName || function.name` 这条分支决定，不再走这里。
   // 即便外部传入这类路径，也只是简单 `<dir>_<name>` 拼接。
+  it("should lowercase mixed-case dir segments — zh-CN/overview/quick-start/page.tsx → zh_cn_overview_quick_start_page", () => {
+    const result = parsePageRoute(appDir, path.join(appDir, "zh-CN", "overview", "quick-start", "page.tsx"));
+    assert.strictEqual(result.ident, "zh_cn_overview_quick_start_page");
+    assert.strictEqual(result.path, "/zh-CN/overview/quick-start");
+  });
+
   it("no longer strips components dir — components/page.tsx → components_page", () => {
     const result = parsePageRoute(appDir, path.join(appDir, "components", "page.tsx"));
     assert.strictEqual(result.ident, "components_page");
