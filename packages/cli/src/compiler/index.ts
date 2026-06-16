@@ -644,6 +644,16 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
         }
         recordEntryOutput(context, outputPath, writable);
       },
+      addOutput(filePath) {
+        const hash = hashFile(filePath);
+        if (!hash) return;
+        const entry = context.entryPath;
+        if (!entry) return;
+        if (!pendingEntryOutputs.has(entry)) {
+          pendingEntryOutputs.set(entry, []);
+        }
+        pendingEntryOutputs.get(entry)!.push({ path: filePath, hash });
+      },
       emitError(error) {
         printError(resourcePath, error);
       },

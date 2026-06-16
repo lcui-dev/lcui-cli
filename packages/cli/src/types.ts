@@ -91,6 +91,13 @@ export interface CompilerContext extends CompilerOptions {
   /** 输出文件 */
   emitFile(name: string, content: string | Buffer): void;
 
+  /**
+   * 声明一个已存在的文件是该 entry 的产物（用于缓存校验）。
+   * loader 可在生成骨架文件后调用此方法，确保该文件在 manifest 中被追踪，
+   * 从而在文件被删除时能正确触发重新编译。
+   */
+  addOutput(filePath: string): void;
+
   /** 生成模块 */
   generateModule(
     name: string,

@@ -259,6 +259,8 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
         .map((item) => item.sourceCode)
         .join("\n\n")}`
     );
+  } else {
+    loader.addOutput(sourceFilePath);
   }
   if (!fs.existsSync(headerFilePath)) {
     loader.emitFile(
@@ -267,6 +269,8 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
         resourceLoaderName ? `\nvoid ${resourceLoaderName}(void);\n` : ""
       }`
     );
+  } else {
+    loader.addOutput(headerFilePath);
   }
   if (!loader.data.components) {
     loader.data.components = {};

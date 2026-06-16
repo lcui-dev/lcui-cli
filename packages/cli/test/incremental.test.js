@@ -162,4 +162,17 @@ describe("incremental compile — build manifest reuse", () => {
     const manifestFile = path.join(fixtureDir, ".lcui", "build", "manifest.json");
     assert.ok(fs.existsSync(manifestFile));
   });
+
+  it("deleting a skeleton .c file triggers regeneration on next build", async function () {
+    this.timeout(30000);
+    const src = path.join(fixtureDir, "src", "greeting.c");
+    assert.ok(fs.existsSync(src), "greeting.c should exist after previous builds");
+
+    fs.removeSync(src);
+    assert.ok(!fs.existsSync(src), "greeting.c should be deleted");
+
+    await withCwd(fixtureDir, () => compile(undefined, {}));
+
+    assert.ok(fs.existsSync(src), "greeting.c should be regenerated after build");
+  });
 });
