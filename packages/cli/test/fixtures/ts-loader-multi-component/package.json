@@ -1,0 +1,6 @@
+{
+  "name": "ts-loader-multi-component-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module"
+}
