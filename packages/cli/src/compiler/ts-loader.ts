@@ -11,6 +11,13 @@ function isComponentFunc(name: string) {
   return name.charAt(0) >= "A" && name.charAt(0) <= "Z";
 }
 
+type ComponentExportKind = "default" | "named" | "internal";
+
+interface ComponentMeta {
+  name: string;
+  kind: ComponentExportKind;
+}
+
 /**
  * 路径派生命名（`parsePageRoute`）仅用于 `page.tsx` / `layout.tsx`：
  * 这两类文件的默认导出函数名通常都叫 `Page` / `Layout`，必须依赖路径
@@ -57,8 +64,22 @@ function registerComponentName(
 export default async function TsLoader(this: LoaderContext, content: LoaderInput) {
   const loader = this;
   const modules: Promise<Module>[] = [];
-  const localFuncNames: string[] = [];
+  const localComponents: ComponentMeta[] = [];
   const outputDirPath = path.dirname(loader.resolveModule(loader.resourcePath));
+
+  function getExportKind(node: ts.Node): ComponentExportKind | null {
+    const modifiers = ts.canHaveModifiers(node) ? ts.getModifiers(node) : undefined;
+    if (!modifiers) return "internal";
+    let hasExport = false;
+    let hasDefault = false;
+    for (const mod of modifiers) {
+      if (mod.kind === ts.SyntaxKind.ExportKeyword) hasExport = true;
+      if (mod.kind === ts.SyntaxKind.DefaultKeyword) hasDefault = true;
+    }
+    if (hasDefault) return "default";
+    if (hasExport) return "named";
+    return "internal";
+  }
 
   function transformer(context: ts.TransformationContext) {
     return (sourceFile: ts.SourceFile) => {
@@ -90,15 +111,21 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
             node.attributes
           );
         }
-        if (ts.isFunctionDeclaration(node) && node.name && isComponentFunc(node.name.getText())) {
-          localFuncNames.push(node.name.getText());
+        if (ts.isFunctionDeclaration(node) && node.name && isComponentFunc(node.name.getText(sourceFile))) {
+          localComponents.push({ name: node.name.getText(sourceFile), kind: getExportKind(node) ?? "internal" });
         } else if (
           ts.isVariableDeclaration(node) &&
           node.initializer &&
           ts.isArrowFunction(node.initializer) &&
-          isComponentFunc(node.name.getText())
+          ts.isIdentifier(node.name) &&
+          isComponentFunc(node.name.getText(sourceFile))
         ) {
-          localFuncNames.push(node.name.getText());
+          const parent = node.parent;
+          const stmt = parent?.parent;
+          localComponents.push({
+            name: node.name.getText(sourceFile),
+            kind: stmt ? (getExportKind(stmt) ?? "internal") : "internal",
+          });
         }
         return ts.visitEachChild(node, visitor, context);
       }
@@ -119,15 +146,21 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
   });
 
   const assets = (await Promise.all(modules)).filter((m) => m?.metadata?.type === "asset");
+  const fileName = path.parse(loader.resourcePath).name;
+  const internalDisplayNameInjections = localComponents
+    .filter((c) => c.kind === "internal")
+    .map((c) => `${c.name}.displayName = "${fileName}_${c.name}";`)
+    .join("\n");
   await loader.generateModule(
     loader.resourcePath,
     () =>
       tsResult.outputText.replace("react/jsx-runtime", "@lcui/react/jsx-runtime") +
-      `\n\nexport const componentList = [${localFuncNames.join(", ")}];\n`
+      `\n${internalDisplayNameInjections}\n` +
+      `\nexport const componentList = [${localComponents.map((c) => c.name).join(", ")}];\n`
   );
   const importedModule = (await loader.importModule(loader.resourcePath)) as Module & {
     default: (React.FC & { displayName?: string }) | undefined;
-    componentList: React.FC[];
+    componentList: (React.FC & { displayName?: string })[];
   };
   const { default: defaultComponentFunc, componentList } = importedModule;
 
@@ -153,51 +186,71 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
       loader.resourcePath.startsWith(loader.appDir + path.sep) &&
       shouldDeriveNameFromRoute(loader.resourcePath));
 
-  let defaultComponentName: string;
-  if (useRouteIdent) {
-    defaultComponentName = parsePageRoute(loader.appDir, loader.resourcePath).ident;
-  } else if (defaultFuncName) {
-    defaultComponentName = defaultFuncName;
+  let defaultComponentSnakeName: string;
+  if (defaultComponentFunc) {
+    let defaultComponentName: string;
+    if (useRouteIdent) {
+      defaultComponentName = parsePageRoute(loader.appDir, loader.resourcePath).ident;
+    } else if (defaultFuncName) {
+      defaultComponentName = defaultFuncName;
+    } else {
+      // 匿名默认导出（例如 `export default () => ...`）拿不到稳定标识，
+      // 在被 import 时也无法正确匹配 widget tag。要求用户显式命名。
+      throw new Error(
+        `Default-exported component in ${path.relative(
+          loader.rootContext,
+          loader.resourcePath
+        )} has no usable name. ` +
+          `Use a named function/declaration (e.g. \`export default function Foo() {}\`) ` +
+          `or assign a displayName so it can be referenced as a widget.`
+      );
+    }
+    defaultComponentSnakeName = snakeCase(defaultComponentName);
   } else {
-    // 匿名默认导出（例如 `export default () => ...`）拿不到稳定标识，
-    // 在被 import 时也无法正确匹配 widget tag。要求用户显式命名。
-    throw new Error(
-      `Default-exported component in ${path.relative(
-        loader.rootContext,
-        loader.resourcePath
-      )} has no usable name. ` +
-        `Use a named function/declaration (e.g. \`export default function Foo() {}\`) ` +
-        `or assign a displayName so it can be referenced as a widget.`
-    );
+    defaultComponentSnakeName = snakeCase(fileName);
+  }
+  if (defaultComponentFunc) {
+    registerComponentName(loader.rootContext, defaultComponentSnakeName, loader.resourcePath);
   }
 
-  const componentName = snakeCase(defaultComponentName);
-  registerComponentName(loader.rootContext, componentName, loader.resourcePath);
-
-  const result = (componentList as React.FC[]).map(
-    (component) =>
-      compile(
-        component,
-        {},
-        {
-          target: defaultComponentFunc === component ? options.target : undefined,
-          name: componentName,
-        }
-      ) as {
-        name: string;
-        node: any;
-        refs: string[];
-        headerFiles: string[];
-        typesCode: string;
-        reactCode: string;
-        sourceCode: string;
-        declarationCode: string;
+  const result = localComponents.map((meta) => {
+    const component = componentList.find(
+      (c) => c.displayName === meta.name || c.name === meta.name
+    );
+    if (!component) {
+      throw new Error(
+        `Could not find component "${meta.name}" in componentList after transpile`
+      );
+    }
+    let componentName: string;
+    if (meta.kind === "default") {
+      componentName = defaultComponentSnakeName;
+    } else {
+      componentName = snakeCase(component.displayName || component.name);
+      registerComponentName(loader.rootContext, componentName, loader.resourcePath);
+    }
+    return compile(
+      component,
+      {},
+      {
+        target: component === defaultComponentFunc ? options.target : undefined,
+        name: componentName,
       }
-  );
+    ) as {
+      name: string;
+      node: any;
+      refs: string[];
+      headerFiles: string[];
+      typesCode: string;
+      reactCode: string;
+      sourceCode: string;
+      declarationCode: string;
+    };
+  });
   const basePath = path.join(dir, name);
   const sourceFilePath = `${basePath}.c`;
   const headerFilePath = `${basePath}.h`;
-  const resourceLoaderName = getResourceLoaderName(name, componentName);
+  const resourceLoaderName = getResourceLoaderName(name, defaultComponentSnakeName);
 
   if (!fs.existsSync(sourceFilePath)) {
     loader.emitFile(

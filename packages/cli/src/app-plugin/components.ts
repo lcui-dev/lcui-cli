@@ -56,7 +56,7 @@ export class AppComponentsCompiler {
         ...componentList
           .filter((c) => c.resourceLoaderName)
           .map((c) => `${c.resourceLoaderName}();`),
-        ...componentList.map((c) => c.components.map((name) => `ui_register_${name}();`)),
+        ...componentList.flatMap((c) => c.components.map((name) => `ui_register_${name}();`)),
       ],
     };
   }

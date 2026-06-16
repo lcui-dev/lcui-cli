@@ -2,10 +2,6 @@ import path from "path";
 import { getResourceLoaderName, toIdent } from "../utils.js";
 import { Loader, LoaderContext, LoaderInput, ResourceNode, UILoaderOptions } from "../types.js";
 
-function toSnakeCase(str: string): string {
-  return str.replace(/([a-z])([A-Z])/g, "$1_$2").toLowerCase();
-}
-
 function toDashCase(str: string): string {
   return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
@@ -78,8 +74,8 @@ async function compile(
         ""
       );
     }
-    if (currentSchema.typesCode) {
-      lines.push(currentSchema.typesCode, "");
+    if (schema.typesCode) {
+      lines.push(schema.typesCode, "");
     }
     if (schema.name) {
       let baseType = "NULL";
@@ -114,8 +110,8 @@ async function compile(
       "}",
       ""
     );
-    if (currentSchema.code) {
-      lines.push(currentSchema.code, "");
+    if (schema.code) {
+      lines.push(schema.code, "");
     }
     return lines.join("\n");
   }
