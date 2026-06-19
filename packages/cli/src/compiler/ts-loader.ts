@@ -213,40 +213,45 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
     registerComponentName(loader.rootContext, defaultComponentSnakeName, loader.resourcePath);
   }
 
-  const result = localComponents.map((meta) => {
-    const component = componentList.find(
-      (c) => c.displayName === meta.name || c.name === meta.name
-    );
-    if (!component) {
-      throw new Error(
-        `Could not find component "${meta.name}" in componentList after transpile`
-      );
-    }
-    let componentName: string;
-    if (meta.kind === "default") {
-      componentName = defaultComponentSnakeName;
-    } else {
-      componentName = snakeCase(component.displayName || component.name);
-      registerComponentName(loader.rootContext, componentName, loader.resourcePath);
-    }
-    return compile(
-      component,
-      {},
-      {
-        target: component === defaultComponentFunc ? options.target : undefined,
-        name: componentName,
+  const result = localComponents
+    .map((meta) => {
+      const component = componentList.find(
+        (c) => c.displayName === meta.name || c.name === meta.name
+      ) as (React.FC & { displayName?: string; shouldPreRender?: boolean }) | undefined;
+      if (!component) {
+        throw new Error(
+          `Could not find component "${meta.name}" in componentList after transpile`
+        );
       }
-    ) as {
-      name: string;
-      node: any;
-      refs: string[];
-      headerFiles: string[];
-      typesCode: string;
-      reactCode: string;
-      sourceCode: string;
-      declarationCode: string;
-    };
-  });
+      if (component.shouldPreRender) {
+        return null;
+      }
+      let componentName: string;
+      if (meta.kind === "default") {
+        componentName = defaultComponentSnakeName;
+      } else {
+        componentName = snakeCase(component.displayName || component.name);
+        registerComponentName(loader.rootContext, componentName, loader.resourcePath);
+      }
+      return compile(
+        component,
+        {},
+        {
+          target: component === defaultComponentFunc ? options.target : undefined,
+          name: componentName,
+        }
+      ) as {
+        name: string;
+        node: any;
+        refs: string[];
+        headerFiles: string[];
+        typesCode: string;
+        reactCode: string;
+        sourceCode: string;
+        declarationCode: string;
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
   const basePath = path.join(dir, name);
   const sourceFilePath = `${basePath}.c`;
   const headerFilePath = `${basePath}.h`;
