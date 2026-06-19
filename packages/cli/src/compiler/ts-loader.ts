@@ -16,6 +16,7 @@ type ComponentExportKind = "default" | "named" | "internal";
 interface ComponentMeta {
   name: string;
   kind: ComponentExportKind;
+  hasExplicitDisplayName: boolean;
 }
 
 /**
@@ -112,7 +113,11 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
           );
         }
         if (ts.isFunctionDeclaration(node) && node.name && isComponentFunc(node.name.getText(sourceFile))) {
-          localComponents.push({ name: node.name.getText(sourceFile), kind: getExportKind(node) ?? "internal" });
+          localComponents.push({
+            name: node.name.getText(sourceFile),
+            kind: getExportKind(node) ?? "internal",
+            hasExplicitDisplayName: false,
+          });
         } else if (
           ts.isVariableDeclaration(node) &&
           node.initializer &&
@@ -125,7 +130,19 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
           localComponents.push({
             name: node.name.getText(sourceFile),
             kind: stmt ? (getExportKind(stmt) ?? "internal") : "internal",
+            hasExplicitDisplayName: false,
           });
+        } else if (
+          ts.isExpressionStatement(node) &&
+          ts.isBinaryExpression(node.expression) &&
+          node.expression.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+          ts.isPropertyAccessExpression(node.expression.left) &&
+          ts.isIdentifier(node.expression.left.expression) &&
+          node.expression.left.name.getText(sourceFile) === "displayName"
+        ) {
+          const targetName = node.expression.left.expression.getText(sourceFile);
+          const comp = localComponents.find((c) => c.name === targetName);
+          if (comp) comp.hasExplicitDisplayName = true;
         }
         return ts.visitEachChild(node, visitor, context);
       }
@@ -147,9 +164,15 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
 
   const assets = (await Promise.all(modules)).filter((m) => m?.metadata?.type === "asset");
   const fileName = path.parse(loader.resourcePath).name;
+  const filePrefix = snakeCase(fileName);
   const internalDisplayNameInjections = localComponents
-    .filter((c) => c.kind === "internal")
-    .map((c) => `${c.name}.displayName = "${fileName}_${c.name}";`)
+    .filter((c) => c.kind === "internal" && !c.hasExplicitDisplayName)
+    .map((c) => {
+      const baseSnake = snakeCase(c.name);
+      if (baseSnake.startsWith(filePrefix)) return null;
+      return `${c.name}.displayName = "${filePrefix}__${baseSnake}";`;
+    })
+    .filter((s): s is string => s !== null)
     .join("\n");
   await loader.generateModule(
     loader.resourcePath,
@@ -229,8 +252,17 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
       let componentName: string;
       if (meta.kind === "default") {
         componentName = defaultComponentSnakeName;
+      } else if (meta.hasExplicitDisplayName && component.displayName) {
+        componentName = component.displayName;
+        registerComponentName(loader.rootContext, componentName, loader.resourcePath);
+      } else if (meta.kind === "named") {
+        componentName = snakeCase(meta.name);
+        registerComponentName(loader.rootContext, componentName, loader.resourcePath);
       } else {
-        componentName = snakeCase(component.displayName || component.name);
+        const baseSnake = snakeCase(meta.name);
+        componentName = baseSnake.startsWith(filePrefix)
+          ? baseSnake
+          : `${filePrefix}__${baseSnake}`;
         registerComponentName(loader.rootContext, componentName, loader.resourcePath);
       }
       return compile(

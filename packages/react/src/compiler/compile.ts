@@ -179,7 +179,7 @@ function transformReactNode(el: ReactNode, isRoot = false): Node | undefined {
     if (el.type.shouldPreRender) {
       return transformReactNode(el.type(el.props), isRoot);
     }
-    node.name = snakeCase(el.type.displayName || el.type.name);
+    node.name = el.type.displayName || snakeCase(el.type.name);
   } else {
     return;
   }

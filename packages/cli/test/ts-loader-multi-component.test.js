@@ -38,25 +38,23 @@ describe("ts-loader — multi-component compilation", () => {
     assert.match(helpersH, /void ui_register_card\(void\);/, "helpers.h should declare ui_register_card");
     assert.match(mainH, /ui_register_card\(\);/, "main.h should call ui_register_card()");
 
-    // 3) Internal (non-exported) component: uses file-name prefix "helpers" + function name "MyButton" → "helpers_my_button"
-    assert.match(tsxH, /helpers_my_button_proto/, "internal component should use file-name prefix: helpers_my_button");
-    assert.match(tsxH, /ui_create_widget_prototype\("helpers_my_button"/, "MyButton should register widget prototype 'helpers_my_button'");
-    assert.match(helpersH, /void ui_register_helpers_my_button\(void\);/, "helpers.h should declare ui_register_helpers_my_button");
-    assert.match(mainH, /ui_register_helpers_my_button\(\);/, "main.h should call ui_register_helpers_my_button()");
+    // 3) Internal (non-exported) component: uses "__" separator (file-name prefix + function name)
+    //    MyButton in helpers.tsx → "helpers__my_button"
+    assert.match(tsxH, /helpers__my_button_proto/, "internal component should use __ separator: helpers__my_button");
+    assert.match(tsxH, /ui_create_widget_prototype\("helpers__my_button"/, "MyButton should register widget prototype 'helpers__my_button'");
+    assert.match(helpersH, /void ui_register_helpers__my_button\(void\);/, "helpers.h should declare ui_register_helpers__my_button");
+    assert.match(mainH, /ui_register_helpers__my_button\(\);/, "main.h should call ui_register_helpers__my_button()");
 
-    // 4) Each component should have its own type definitions and init/destroy functions
     assert.match(tsxH, /typedef struct app_react_state/, "App should have its own state type");
     assert.match(tsxH, /typedef struct card_react_state/, "Card should have its own state type");
-    assert.match(tsxH, /typedef struct helpers_my_button_react_state/, "MyButton should have its own state type");
+    assert.match(tsxH, /typedef struct helpers__my_button_react_state/, "MyButton should have its own state type");
 
-    // 5) Verify component references in template
     assert.match(tsxH, /ui_create_widget\("card"\)/, "App template should reference Card widget");
-    assert.match(tsxH, /ui_create_widget\("helpers_my_button"\)/, "App template should reference MyButton widget with prefix");
+    assert.match(tsxH, /ui_create_widget\("helpers__my_button"\)/, "App template should reference MyButton widget with prefix");
 
-    // 6) Source code (.c file) should contain all three components' implementation blocks
     const helpersC = fs.readFileSync(path.join(fixtureDir, "src", "helpers.c"), "utf-8");
     assert.match(helpersC, /app_init/, ".c file should contain App init function");
     assert.match(helpersC, /card_init/, ".c file should contain Card init function");
-    assert.match(helpersC, /helpers_my_button_init/, ".c file should contain MyButton init function");
+    assert.match(helpersC, /helpers__my_button_init/, ".c file should contain MyButton init function");
   });
 });
