@@ -320,7 +320,7 @@ async function compile(
   ].join("\n");
 }
 
-const UILoader: Loader<LoaderInput, string> = async function UILoader(
+const UILoader: Loader<LoaderInput, string | void> = async function UILoader(
   this: LoaderContext,
   content
 ) {
@@ -331,7 +331,10 @@ const UILoader: Loader<LoaderInput, string> = async function UILoader(
   } else if (content && typeof content === "object" && "name" in content) {
     node = content as ResourceNode;
   } else {
-    throw new Error("invalid content");
+    // 上游 loader 已透传所有内容（如无组件的纯数据 .ts 文件），
+    // 本层无 UI 产物可生成，直接降级返回 undefined，与 webpack loader
+    // 允许返回 null/undefined 由下游 skip 的模式保持一致。
+    return undefined;
   }
   return compile(node, this, {
     ...this.getOptions<UILoaderOptions>(),
