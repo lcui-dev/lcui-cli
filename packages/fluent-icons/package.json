@@ -1,6 +1,6 @@
 {
   "name": "@lcui/fluent-icons",
-  "version": "1.0.4",
+  "version": "2.0.0",
   "type": "module",
   "description": "An icon library for LCUI applications based on fluentui-system-icons",
   "main": "dist/index.js",
