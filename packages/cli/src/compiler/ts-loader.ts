@@ -271,6 +271,7 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
         {
           target: component === defaultComponentFunc ? options.target : undefined,
           name: componentName,
+          filePath: loader.resourcePath,
         }
       ) as {
         name: string;

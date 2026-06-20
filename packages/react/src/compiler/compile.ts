@@ -300,7 +300,7 @@ function parseHookValueNames(funcStr: string, hook: string) {
 export default function compile<T = {}>(
   componentFunc: ComponentFunction<T>,
   props: T,
-  options: { target?: "Widget" | "AppRouter"; name?: string }
+  options: { target?: "Widget" | "AppRouter"; name?: string; filePath?: string }
 ) {
   const funcStr = `${componentFunc}`;
   const ctx: ComponentContext = {
@@ -317,26 +317,39 @@ export default function compile<T = {}>(
 
   setComponentContext(ctx);
 
-  const el: ReactElement = (() => {
-    switch (options?.target) {
-      case "AppRouter":
-        return componentFunc({
-          ...props,
-          children: React.createElement(RouterView),
-        });
-      default:
-        return componentFunc(props);
-    }
-  })();
-  const hasBaseType = el.type !== "div" && el.type !== Widget;
-  return {
-    name: options.name || ctx.name,
-    node: transformReactNode(el, true),
-    refs: ctx.refs,
-    headerFiles: Array.from(ctx.headerFiles),
-    typesCode: compiler.compileTypes(ctx),
-    reactCode: compiler.compileComponent(ctx),
-    declarationCode: `void ui_register_${ctx.name}(void);
+  // React 在 dev 模式下通过 console.error 输出 key prop 缺失等警告。
+  // 在此临时 patch，将 filePath 注入每条警告的前缀，便于开发者定位源文件。
+  // componentFunc 和 transformReactNode 都是同步调用，不存在并发覆盖问题；
+  // try/finally 保证即使抛出异常也会恢复原始 console.error。
+  const originalConsoleError = console.error;
+  if (options.filePath) {
+    const fp = options.filePath;
+    console.error = (...args: unknown[]) => {
+      originalConsoleError(`in ${fp}:`, ...args);
+    };
+  }
+
+  try {
+    const el: ReactElement = (() => {
+      switch (options?.target) {
+        case "AppRouter":
+          return componentFunc({
+            ...props,
+            children: React.createElement(RouterView),
+          });
+        default:
+          return componentFunc(props);
+      }
+    })();
+    const hasBaseType = el.type !== "div" && el.type !== Widget;
+    return {
+      name: options.name || ctx.name,
+      node: transformReactNode(el, true),
+      refs: ctx.refs,
+      headerFiles: Array.from(ctx.headerFiles),
+      typesCode: compiler.compileTypes(ctx),
+      reactCode: compiler.compileComponent(ctx),
+      declarationCode: `void ui_register_${ctx.name}(void);
 
 ui_widget_t *ui_create_${ctx.name}(void);
 
@@ -392,5 +405,8 @@ void ui_register_${ctx.name}(void)
         ${ctx.name}_proto->destroy = ${ctx.name}_destroy;
 }
 `,
-  };
+    };
+  } finally {
+    console.error = originalConsoleError;
+  }
 }
