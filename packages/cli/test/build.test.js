@@ -76,5 +76,11 @@ describe("compile (build) — AppRouter project (with app/ directory)", () => {
     assert.match(mainH, /router_config_set_component\(config, NULL, "root_page"\)/);
     assert.match(mainH, /ui_register_root_layout\(\);/);
     assert.match(mainH, /ui_register_root_page\(\);/);
+
+    // 资源加载函数使用路由派生名称：page.tsx → root_page, layout.tsx → root_layout
+    const pageH = fs.readFileSync(path.join(fixtureDir, "app", "page.tsx.h"), "utf-8");
+    const layoutH = fs.readFileSync(path.join(fixtureDir, "app", "layout.tsx.h"), "utf-8");
+    assert.match(pageH, /void ui_load_root_page_resources\(void\)/);
+    assert.match(layoutH, /void ui_load_root_layout_resources\(void\)/);
   });
 });

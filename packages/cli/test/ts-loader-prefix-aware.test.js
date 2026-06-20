@@ -42,6 +42,9 @@ describe("ts-loader — prefix-aware internal component naming", () => {
 
       // FieldTable's template should reference FieldTableProvider without redundant prefix
       assert.match(tsxH, /ui_create_widget\("field_table_provider"\)/, "template should reference 'field_table_provider' widget");
+
+      // 资源加载函数使用默认导出组件名 field_table
+      assert.match(tsxH, /void ui_load_field_table_resources\(void\)/, "resource loader should use default export name: field_table");
     });
   });
 
@@ -121,6 +124,39 @@ describe("ts-loader — prefix-aware internal component naming", () => {
       // Both names are distinct — no collision
       assert.match(tsxH, /ui_create_widget\("page__header"\)/, "Page template should reference Header as 'page__header'");
       assert.match(tsxH, /ui_create_widget\("page_header"\)/, "Page template should reference PageHeader as 'page_header'");
+
+      // 资源加载函数使用路由派生名称 root_page
+      assert.match(tsxH, /void ui_load_root_page_resources\(void\)/, "resource loader should use route-derived name: root_page");
+    });
+  });
+
+  describe("resource loader name matches when shouldPreRender filters inner components", () => {
+    const fixtureDir = path.join(fixturesDir, "ts-loader-resource-mismatch");
+
+    before(function () {
+      this.timeout(30000);
+      ensureLcuiReact(fixtureDir);
+      cleanGenerated(fixtureDir, "src");
+    });
+
+    it("uses default export name for resource loader even when shouldPreRender filters inner schemas", async function () {
+      this.timeout(30000);
+      await withCwd(fixtureDir, () => compile(undefined, { skipXMake: true }));
+
+      const tsxH = fs.readFileSync(path.join(fixtureDir, "src", "field-table.tsx.h"), "utf-8");
+
+      // ts-loader 声明的资源加载函数应基于默认导出 FieldTable → field_table
+      // 而非 shouldPreRender 过滤后仅存的 schema FieldTableProvider → field_table_provider
+      assert.match(
+        tsxH,
+        /void ui_load_field_table_resources\(void\)/,
+        "resource loader should use default export 'field_table', not surviving schema 'field_table_provider'"
+      );
+      assert.doesNotMatch(
+        tsxH,
+        /ui_load_field_table_provider_resources/,
+        "must not use filtered inner component name 'field_table_provider' for resource loader"
+      );
     });
   });
 });

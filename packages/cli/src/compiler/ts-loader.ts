@@ -323,6 +323,7 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
   return {
     name: "lcui-app",
     children: [
+      { name: "default-component", text: defaultComponentSnakeName },
       ...assets.map((asset) => ({
         name: "resource",
         attributes: {

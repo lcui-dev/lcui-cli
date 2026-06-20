@@ -48,6 +48,7 @@ async function compile(
   const resourceLines: string[] = [];
   const assets: string[] = [];
   const headerFiles = new Set<string>(["<ui.h>"]);
+  let defaultComponentName: string | undefined;
   const indentStr = " ".repeat(indent);
   const parentIdent = "parent";
 
@@ -131,10 +132,8 @@ async function compile(
   }
 
   function generateResourceFunc(): string {
-    const onlySchemaName =
-      Object.keys(schemas).length === 1 && currentSchema.name ? currentSchema.name : undefined;
     return [
-      `void ${getResourceLoaderName(fileName, onlySchemaName)}(void)`,
+      `void ${getResourceLoaderName(fileName, defaultComponentName)}(void)`,
       "{",
       ...resourceLines.map((line) => (line ? `${indentStr}${line}` : line)),
       "}",
@@ -285,6 +284,9 @@ async function compile(
         break;
       case "resource":
         compileResourceNode(node);
+        return;
+      case "default-component":
+        defaultComponentName = node.text ?? undefined;
         return;
       case "schema":
         if (state !== stateEnum.START) {
