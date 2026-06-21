@@ -36,3 +36,5 @@ export const jsx: JSXFactor = (type, props, key) =>
 
 export const jsxs: JSXFactor = (type, props, key) =>
   (rt as unknown as { jsxs: JSXFactor }).jsxs(type, transformElementProps(props), key);
+
+export { Fragment } from "react/jsx-runtime";

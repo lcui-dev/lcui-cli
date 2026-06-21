@@ -93,7 +93,20 @@ function transformNodeStyle(node: Node, style: Record<string, any>) {
   }
 }
 
+function flattenChildren(rawChildren: ReactNode): ReactNode[] {
+  const result: ReactNode[] = [];
+  React.Children.forEach(rawChildren, (child) => {
+    if (isValidElement(child) && child.type === React.Fragment) {
+      result.push(...flattenChildren((child.props as { children?: ReactNode }).children));
+    } else {
+      result.push(child);
+    }
+  });
+  return result;
+}
+
 function transformNodeChildren(node: Node, rawChildren: ReactNode) {
+  rawChildren = flattenChildren(rawChildren);
   let isPureText = true;
   let needFormat = true;
   const children: (string | ObjectBinding | ReactElement)[] = [];
