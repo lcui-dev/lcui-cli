@@ -1,12 +1,7 @@
 import assert from "assert";
 import path from "path";
 import compile from "../lib/compiler/index.js";
-import {
-  fixturesDir,
-  withCwd,
-  ensureLcuiReact,
-  cleanGenerated,
-} from "./helpers.js";
+import { fixturesDir, withCwd, ensureLcuiReact, cleanGenerated } from "./helpers.js";
 
 describe("ts-loader — React key warning includes source file path", () => {
   const fixtureDir = path.join(fixturesDir, "ts-loader-key-warning");
@@ -37,9 +32,7 @@ describe("ts-loader — React key warning includes source file path", () => {
 
     // At least one captured line should contain the file path and "key"
     const listPath = path.join(fixtureDir, "src", "list.tsx");
-    const keyWarnings = captured.filter(
-      (line) => line.includes("key") && line.includes(listPath)
-    );
+    const keyWarnings = captured.filter((line) => line.includes("key") && line.includes(listPath));
 
     assert.ok(
       keyWarnings.length > 0,

@@ -59,11 +59,7 @@ function TestComponent3() {
     React.createElement(
       React.Fragment,
       null,
-      React.createElement(
-        React.Fragment,
-        null,
-        React.createElement("text", null, "deep")
-      ),
+      React.createElement(React.Fragment, null, React.createElement("text", null, "deep")),
       React.createElement("text", null, "shallow")
     )
   );

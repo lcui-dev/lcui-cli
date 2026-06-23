@@ -368,7 +368,7 @@ ui_widget_t *ui_create_${ctx.name}(void);
 
 void ${ctx.name}_update(ui_widget_t *w);
 `,
-    sourceCode: `typedef struct {
+      sourceCode: `typedef struct {
         ${ctx.name}_react_t base;
         // Add additional states to your component here
         // ...

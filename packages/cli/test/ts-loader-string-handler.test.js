@@ -2,14 +2,9 @@ import assert from "assert";
 import fs from "fs-extra";
 import path from "path";
 import compile from "../lib/compiler/index.js";
-import {
-  fixturesDir,
-  withCwd,
-  ensureLcuiReact,
-  cleanGenerated,
-} from "./helpers.js";
+import { fixturesDir, withCwd, ensureLcuiReact, cleanGenerated } from "./helpers.js";
 
-describe("ts-loader — string event handler (onClick=\"name\")", () => {
+describe('ts-loader — string event handler (onClick="name")', () => {
   const fixtureDir = path.join(fixturesDir, "ts-loader-string-handler");
 
   before(function () {
@@ -38,7 +33,7 @@ describe("ts-loader — string event handler (onClick=\"name\")", () => {
     assert.match(
       reactHeader,
       /ui_widget_on\([^,]+,\s*"click",\s*handle_action_button_click,\s*w\)/,
-      "expected ui_widget_on to bind the named handler to the \"click\" event"
+      'expected ui_widget_on to bind the named handler to the "click" event'
     );
   });
 });

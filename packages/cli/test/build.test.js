@@ -2,12 +2,7 @@ import assert from "assert";
 import fs from "fs-extra";
 import path from "path";
 import compile from "../lib/compiler/index.js";
-import {
-  fixturesDir,
-  withCwd,
-  ensureLcuiReact,
-  cleanGenerated,
-} from "./helpers.js";
+import { fixturesDir, withCwd, ensureLcuiReact, cleanGenerated } from "./helpers.js";
 
 describe("compile (build) — non-AppRouter project (no app/ directory)", () => {
   const fixtureDir = path.join(fixturesDir, "build-no-router");

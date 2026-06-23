@@ -398,8 +398,7 @@ function compileComponentEventHandlers(ctx: ComponentContext) {
     compileComponentMethod({
       name: "react_init_events",
       body: ctx.eventBindings.map(
-        (item) =>
-          `ui_widget_on(${item.target}, "${item.eventName}", ${item.handlerName}, w)`
+        (item) => `ui_widget_on(${item.target}, "${item.eventName}", ${item.handlerName}, w)`
       ),
     }),
   ].join("\n\n");

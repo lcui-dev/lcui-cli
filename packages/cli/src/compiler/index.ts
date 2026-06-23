@@ -14,12 +14,7 @@ import YAMLLoader from "./yaml-loader.js";
 import JSONLoader from "./json-loader.js";
 import { resolveRootDir } from "../utils.js";
 import { writeIfChanged, hashContent, hashFile, hashJSON } from "./fs-cache.js";
-import {
-  BuildManifest,
-  ManifestEntry,
-  ManifestOutput,
-  hashConfig,
-} from "./build-manifest.js";
+import { BuildManifest, ManifestEntry, ManifestOutput, hashConfig } from "./build-manifest.js";
 import {
   AnyLoader,
   CompilerContext,
@@ -472,7 +467,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
         // Add content hash to URL to bust Node's ESM cache.
         // Without this, the same URL always returns the cached module object,
         // causing stale content to be used in subsequent builds.
-        const contentHash = crypto.createHash('md5').update(content).digest('hex').slice(0, 8);
+        const contentHash = crypto.createHash("md5").update(content).digest("hex").slice(0, 8);
         const importUrl = pathToFileURL(cache.outputPath).href + `?v=${contentHash}`;
         cache.resolve((await import(importUrl)) as Module);
       } catch (importErr) {
@@ -591,8 +586,11 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
       finalizeEntry(resolvedPath, loaders, result.data);
       try {
         // Add content hash to URL to bust Node's ESM cache.
-        const contentStr = typeof result.content === 'string' ? result.content : JSON.stringify(result.content ?? '');
-        const contentHash = crypto.createHash('md5').update(contentStr).digest('hex').slice(0, 8);
+        const contentStr =
+          typeof result.content === "string"
+            ? result.content
+            : JSON.stringify(result.content ?? "");
+        const contentHash = crypto.createHash("md5").update(contentStr).digest("hex").slice(0, 8);
         const importUrl = pathToFileURL(cache.outputPath).href + `?v=${contentHash}`;
         cache.resolve((await import(importUrl)) as Module);
       } catch (importErr) {
@@ -636,8 +634,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
           fs.mkdirpSync(outputDir);
         }
         logger.info(`Emitting ${name}`);
-        const writable =
-          typeof content === "string" ? content : new Uint8Array(content);
+        const writable = typeof content === "string" ? content : new Uint8Array(content);
         const wrote = writeIfChanged(outputPath, writable);
         if (wrote) {
           changedOutputs.add(outputPath);
@@ -737,7 +734,9 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     const entry: ManifestEntry = {
       sourceHash,
       loaders: loaders.map((l) => l.loader.name || "anonymous"),
-      loaderOptionsHash: hashJSON(loaders.map((l) => ({ name: l.loader.name, options: l.options }))),
+      loaderOptionsHash: hashJSON(
+        loaders.map((l) => ({ name: l.loader.name, options: l.options }))
+      ),
       dependencies: deps,
       outputs,
       componentConfig: extractComponentConfigForEntry(entryPath, data),
@@ -766,10 +765,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
    * 增量短路：若 manifest 里该 entry 的源/依赖/产物全部命中，则跳过 loader 链。
    * 跳过时仍需把 componentConfig merge 回 AppComponentsCompiler（通过触发 loadModule 钩子）。
    */
-  async function tryReuseEntry(
-    entryPath: string,
-    loaders: ResolvedLoaderRule[]
-  ): Promise<boolean> {
+  async function tryReuseEntry(entryPath: string, loaders: ResolvedLoaderRule[]): Promise<boolean> {
     if (options.force) return false;
     const cached = manifest.get(entryPath);
     if (!cached) return false;
@@ -778,10 +774,7 @@ export default async function compile(file: string, compilerOptions: CompilerOpt
     const loaderOptionsHash = hashJSON(
       loaders.map((l) => ({ name: l.loader.name, options: l.options }))
     );
-    if (
-      cached.sourceHash !== sourceHash ||
-      cached.loaderOptionsHash !== loaderOptionsHash
-    ) {
+    if (cached.sourceHash !== sourceHash || cached.loaderOptionsHash !== loaderOptionsHash) {
       return false;
     }
     if (!manifest.validateDependencies(cached)) return false;

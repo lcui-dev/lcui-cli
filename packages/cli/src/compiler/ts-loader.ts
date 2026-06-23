@@ -40,11 +40,7 @@ function shouldDeriveNameFromRoute(resourcePath: string) {
  */
 const componentNameRegistries = new Map<string, Map<string, string>>();
 
-function registerComponentName(
-  rootContext: string,
-  componentName: string,
-  resourcePath: string
-) {
+function registerComponentName(rootContext: string, componentName: string, resourcePath: string) {
   let registry = componentNameRegistries.get(rootContext);
   if (!registry) {
     registry = new Map();
@@ -112,7 +108,11 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
             node.attributes
           );
         }
-        if (ts.isFunctionDeclaration(node) && node.name && isComponentFunc(node.name.getText(sourceFile))) {
+        if (
+          ts.isFunctionDeclaration(node) &&
+          node.name &&
+          isComponentFunc(node.name.getText(sourceFile))
+        ) {
           localComponents.push({
             name: node.name.getText(sourceFile),
             kind: getExportKind(node) ?? "internal",
@@ -242,9 +242,7 @@ export default async function TsLoader(this: LoaderContext, content: LoaderInput
         (c) => c.displayName === meta.name || c.name === meta.name
       ) as (React.FC & { displayName?: string; shouldPreRender?: boolean }) | undefined;
       if (!component) {
-        throw new Error(
-          `Could not find component "${meta.name}" in componentList after transpile`
-        );
+        throw new Error(`Could not find component "${meta.name}" in componentList after transpile`);
       }
       if (component.shouldPreRender) {
         return null;

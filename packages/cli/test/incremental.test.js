@@ -2,12 +2,7 @@ import assert from "assert";
 import fs from "fs-extra";
 import path from "path";
 import compile from "../lib/compiler/index.js";
-import {
-  fixturesDir,
-  withCwd,
-  ensureLcuiReact,
-  cleanGenerated,
-} from "./helpers.js";
+import { fixturesDir, withCwd, ensureLcuiReact, cleanGenerated } from "./helpers.js";
 
 /**
  * 拍快照：递归收集目录下所有文件的 mtimeMs / size，

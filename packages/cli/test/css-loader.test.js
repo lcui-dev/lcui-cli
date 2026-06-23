@@ -2,12 +2,7 @@ import assert from "assert";
 import fs from "fs-extra";
 import path from "path";
 import compile from "../lib/compiler/index.js";
-import {
-  fixturesDir,
-  withCwd,
-  ensureLcuiReact,
-  cleanGenerated,
-} from "./helpers.js";
+import { fixturesDir, withCwd, ensureLcuiReact, cleanGenerated } from "./helpers.js";
 
 describe("css-loader — tailwindcss integration", () => {
   const fixtureDir = path.join(fixturesDir, "css-loader-tailwind");
@@ -23,10 +18,7 @@ describe("css-loader — tailwindcss integration", () => {
     await withCwd(fixtureDir, () => compile(undefined, {}));
 
     const cssHPath = path.join(fixtureDir, "app", "global.css.h");
-    assert.ok(
-      fs.existsSync(cssHPath),
-      `expected css-loader to emit ${cssHPath}`
-    );
+    assert.ok(fs.existsSync(cssHPath), `expected css-loader to emit ${cssHPath}`);
     const cssH = fs.readFileSync(cssHPath, "utf-8");
 
     // 1. 头文件骨架仍在：css-loader 应当生成 `static const char *css_str_global = ...`

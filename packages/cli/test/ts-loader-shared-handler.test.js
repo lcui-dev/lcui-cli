@@ -2,12 +2,7 @@ import assert from "assert";
 import fs from "fs-extra";
 import path from "path";
 import compile from "../lib/compiler/index.js";
-import {
-  fixturesDir,
-  withCwd,
-  ensureLcuiReact,
-  cleanGenerated,
-} from "./helpers.js";
+import { fixturesDir, withCwd, ensureLcuiReact, cleanGenerated } from "./helpers.js";
 
 describe("ts-loader — shared event handler on multiple widgets", () => {
   const fixtureDir = path.join(fixturesDir, "ts-loader-shared-handler");
@@ -38,9 +33,7 @@ describe("ts-loader — shared event handler on multiple widgets", () => {
     );
 
     // 2) ui_widget_on must be emitted for all three buttons.
-    const bindingMatches = reactHeader.match(
-      /ui_widget_on\([^,]+,\s*"click",\s*on_action,\s*w\)/g
-    );
+    const bindingMatches = reactHeader.match(/ui_widget_on\([^,]+,\s*"click",\s*on_action,\s*w\)/g);
     assert.equal(
       bindingMatches && bindingMatches.length,
       3,

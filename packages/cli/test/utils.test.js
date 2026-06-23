@@ -50,7 +50,10 @@ describe("parsePageRoute", () => {
   // ts-loader 走 `displayName || function.name` 这条分支决定，不再走这里。
   // 即便外部传入这类路径，也只是简单 `<dir>_<name>` 拼接。
   it("should lowercase mixed-case dir segments — zh-CN/overview/quick-start/page.tsx → zh_cn_overview_quick_start_page", () => {
-    const result = parsePageRoute(appDir, path.join(appDir, "zh-CN", "overview", "quick-start", "page.tsx"));
+    const result = parsePageRoute(
+      appDir,
+      path.join(appDir, "zh-CN", "overview", "quick-start", "page.tsx")
+    );
     assert.strictEqual(result.ident, "zh_cn_overview_quick_start_page");
     assert.strictEqual(result.path, "/zh-CN/overview/quick-start");
   });
@@ -65,4 +68,3 @@ describe("parsePageRoute", () => {
     assert.strictEqual(result.ident, "widgets_layout");
   });
 });
-

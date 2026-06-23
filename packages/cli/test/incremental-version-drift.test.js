@@ -2,12 +2,7 @@ import assert from "assert";
 import fs from "fs-extra";
 import path from "path";
 import compile from "../lib/compiler/index.js";
-import {
-  fixturesDir,
-  withCwd,
-  ensureLcuiReact,
-  cleanGenerated,
-} from "./helpers.js";
+import { fixturesDir, withCwd, ensureLcuiReact, cleanGenerated } from "./helpers.js";
 
 describe("incremental build — version drift (off-by-one regression)", () => {
   const fixtureDir = path.join(fixturesDir, "incremental-version-drift");
@@ -77,11 +72,7 @@ export default function Widget0() {
     fs.writeFileSync(srcFile, V0);
     await compileClean();
     const H0 = fs.readFileSync(tsxH, "utf-8");
-    assert.doesNotMatch(
-      H0,
-      /marker_v1/,
-      "v0 .tsx.h must NOT contain the string 'marker_v1'"
-    );
+    assert.doesNotMatch(H0, /marker_v1/, "v0 .tsx.h must NOT contain the string 'marker_v1'");
     assert.doesNotMatch(
       H0,
       MARKER_BYTES,
