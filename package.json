@@ -33,7 +33,7 @@
     "release": "npm run build && changeset publish"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.6.0",
+    "@changesets/cli": "^2.31.0",
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
     "@types/node": "^24.12.4",
