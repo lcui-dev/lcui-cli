@@ -38,7 +38,7 @@
     "commander": "^15.0.0",
     "fs-extra": "^11.3.5",
     "os-locale": "^8.0.0",
-    "postcss": "^8.5.18",
+    "postcss": "^8.5.23",
     "postcss-load-config": "^4.0.2",
     "postcss-modules": "^6.0.0",
     "postcss-sass": "^0.5.0",
